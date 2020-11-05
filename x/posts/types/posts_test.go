@@ -1,10 +1,11 @@
 package types_test
 
 import (
-	"github.com/desmos-labs/desmos/x/posts/types"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/desmos-labs/desmos/x/posts/types"
 
 	"github.com/stretchr/testify/require"
 )

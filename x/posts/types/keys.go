@@ -3,8 +3,9 @@ package types
 // nolint
 
 import (
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"regexp"
+
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 const (

@@ -1,8 +1,9 @@
 package types_test
 
 import (
-	types2 "github.com/desmos-labs/desmos/x/posts/types"
 	"testing"
+
+	types2 "github.com/desmos-labs/desmos/x/posts/types"
 
 	"github.com/desmos-labs/desmos/x/reports/types"
 
