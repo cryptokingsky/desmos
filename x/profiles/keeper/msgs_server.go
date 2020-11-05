@@ -48,7 +48,7 @@ func (k msgServer) SaveProfile(goCtx context.Context, msg *types.MsgSaveProfile)
 		msg.Dtag,
 		msg.Moniker,
 		msg.Bio,
-		types.NewPictures(msg.ProfilePic, msg.CoverPic),
+		types.NewPictures(msg.ProfilePicture, msg.CoverPicture),
 		profile.CreationDate,
 		profile.Creator,
 	))

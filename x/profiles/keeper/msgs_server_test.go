@@ -287,7 +287,7 @@ func (suite *KeeperTestSuite) Test_handleMsgRequestDTagTransfer() {
 			}
 
 			if test.isBlocked {
-				err := suite.relKeeper.SaveUserBlock(suite.ctx, relationshipstypes.NewUserBlock(
+				err := suite.rk.SaveUserBlock(suite.ctx, relationshipstypes.NewUserBlock(
 					suite.testData.user,
 					suite.testData.otherUser,
 					"test",

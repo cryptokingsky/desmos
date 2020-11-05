@@ -29,7 +29,7 @@ type KeeperTestSuite struct {
 	ctx            sdk.Context
 	storeKey       sdk.StoreKey
 	keeper         keeper.Keeper
-	relKeeper      relationshipskeeper.Keeper
+	rk             relationshipskeeper.Keeper
 	paramsKeeper   paramskeeper.Keeper
 	testData       TestData
 }
@@ -64,13 +64,13 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.ctx = sdk.NewContext(ms, tmproto.Header{ChainID: "test-chain-id"}, false, log.NewNopLogger())
 	suite.cdc, suite.legacyAminoCdc = app.MakeCodecs()
 
-	suite.relKeeper = relationshipskeeper.NewKeeper(suite.cdc, relationshipsKey)
+	suite.rk = relationshipskeeper.NewKeeper(suite.cdc, relationshipsKey)
 	suite.paramsKeeper = paramskeeper.NewKeeper(suite.cdc, suite.legacyAminoCdc, paramsKey, paramsTKey)
 	suite.keeper = keeper.NewKeeper(
 		suite.cdc,
 		suite.storeKey,
 		suite.paramsKeeper.Subspace(types.DefaultParamspace),
-		suite.relKeeper,
+		suite.rk,
 	)
 
 	// setup Data

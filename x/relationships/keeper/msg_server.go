@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/desmos-labs/desmos/x/relationships/types"
 )
 
@@ -45,14 +46,14 @@ func (k msgServer) CreateRelationship(goCtx context.Context, msg *types.MsgCreat
 func (k msgServer) RemoveRelationship(goCtx context.Context, msg *types.MsgDeleteRelationship) (*types.MsgDeleteRelationshipResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err := k.DeleteRelationship(ctx, types.NewRelationship(msg.Sender, msg.Counterparty, msg.Subspace))
+	err := k.DeleteRelationship(ctx, types.NewRelationship(msg.User, msg.Counterparty, msg.Subspace))
 	if err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeRelationshipsDeleted,
-		sdk.NewAttribute(types.AttributeRelationshipSender, msg.Sender),
+		sdk.NewAttribute(types.AttributeRelationshipSender, msg.User),
 		sdk.NewAttribute(types.AttributeRelationshipReceiver, msg.Counterparty),
 		sdk.NewAttribute(types.AttributeRelationshipSubspace, msg.Subspace),
 	))

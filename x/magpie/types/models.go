@@ -8,6 +8,11 @@ import (
 // --- Session id
 // ------------------
 
+// NewSessionID returns a new SessionID value containing the given value
+func NewSessionID(value uint64) SessionID {
+	return SessionID{Value: value}
+}
+
 // Valid returns true if and only if this id can be considered
 // valid to be stored on the chain
 func (id SessionID) Valid() bool {

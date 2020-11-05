@@ -41,8 +41,7 @@ func (suite *KeeperTestSuite) TestInvariants() {
 		answers      *types.UserAnswer
 		postReaction *types.PostReaction
 		reaction     *types.RegisteredReaction
-		expResponse  string
-		expBool      bool
+		expStop      bool
 	}{
 		{
 			name:         "All invariants are not violated",
@@ -50,8 +49,7 @@ func (suite *KeeperTestSuite) TestInvariants() {
 			answers:      &answer,
 			postReaction: &postReaction,
 			reaction:     &reaction,
-			expResponse:  "Every invariant condition is fulfilled correctly",
-			expBool:      true,
+			expStop:      true,
 		},
 		{
 			name: "ValidPosts Invariants violated",
@@ -67,8 +65,7 @@ func (suite *KeeperTestSuite) TestInvariants() {
 			answers:      nil,
 			postReaction: nil,
 			reaction:     nil,
-			expResponse:  "posts: invalid posts IDs invariant\nThe following posts are invalid:\n 1234\n\n",
-			expBool:      true,
+			expStop:      true,
 		},
 		{
 			name: "ValidCommentsDate Invariants violated",
@@ -86,8 +83,7 @@ func (suite *KeeperTestSuite) TestInvariants() {
 			answers:      nil,
 			postReaction: nil,
 			reaction:     nil,
-			expResponse:  "posts: comments dates before parent post date invariant\nThe following post IDs referred to posts which are invalid comments having creation date before parent post creation date:\n f1b909289cd23188c19da17ae5d5a05ad65623b0fad756e5e03c8c936ca876fd\n\n",
-			expBool:      true,
+			expStop:      true,
 		},
 		{
 			name:         "ValidPostForReactions Invariants violated",
@@ -95,8 +91,7 @@ func (suite *KeeperTestSuite) TestInvariants() {
 			answers:      nil,
 			postReaction: &postReaction,
 			reaction:     &reaction,
-			expResponse:  "posts: posts reactions refers to non existing posts invariant\nThe following reactions refer to posts that do not exist:\n [Shortcode] :like: [Value] +1 [Owner] cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns\n\n",
-			expBool:      true,
+			expStop:      true,
 		},
 		{
 			name:         "ValidPollForPollAnswers Invariants violated",
@@ -104,8 +99,7 @@ func (suite *KeeperTestSuite) TestInvariants() {
 			answers:      &answer,
 			postReaction: nil,
 			reaction:     nil,
-			expResponse:  "posts: poll answers refers to posts without poll invariant\nThe following answers refer to a post that either does not exist or has no poll associated to it:\n User: cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47 \nAnswers IDs: 1 2\n\n",
-			expBool:      true,
+			expStop:      true,
 		},
 	}
 
@@ -129,10 +123,8 @@ func (suite *KeeperTestSuite) TestInvariants() {
 				suite.k.SavePollAnswers(suite.ctx, test.posts[0].PostID, *test.answers)
 			}
 
-			res, stop := keeper.AllInvariants(suite.k)(suite.ctx)
-
-			suite.Require().Equal(test.expResponse, res)
-			suite.Require().Equal(test.expBool, stop)
+			_, stop := keeper.AllInvariants(suite.k)(suite.ctx)
+			suite.Require().Equal(test.expStop, stop)
 		})
 	}
 }

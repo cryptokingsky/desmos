@@ -41,7 +41,7 @@ message MsgCreateRelationshipResponse {}
 // MsgDeleteRelationship represents a message to delete the relationship
 // between two users.
 message MsgDeleteRelationship {
-  string sender = 1 [(gogoproto.moretags) = "yaml:\"sender\""];
+  string user = 1 [(gogoproto.moretags) = "yaml:\"user\""];
   string counterparty = 2 [(gogoproto.moretags) = "yaml:\"counterparty\""];
   string subspace = 3 [(gogoproto.moretags) = "yaml:\"subspace\""];
 }

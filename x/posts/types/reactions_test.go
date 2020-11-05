@@ -241,15 +241,6 @@ func TestReactions_AppendIfMissing(t *testing.T) {
 
 // ___________________________________________________________________________________________________________________
 
-func TestPostReaction_String(t *testing.T) {
-	reaction := types.NewPostReaction(
-		":smile:",
-		"reaction",
-		"cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4",
-	)
-	require.Equal(t, "[Shortcode] :smile: [Value] reaction [Owner] cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4", reaction.String())
-}
-
 func TestPostReaction_Validate(t *testing.T) {
 	tests := []struct {
 		name     string

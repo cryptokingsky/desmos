@@ -52,9 +52,7 @@ message PostResponse {
   repeated desmos.posts.v1beta1.PostReaction reactions = 3 [
     (gogoproto.nullable) = false
   ];
-  repeated string children = 4 [
-    (gogoproto.nullable) = false
-  ];
+  repeated string children = 4;
 }
 
 // ___________________________________________________________________________________________________________________

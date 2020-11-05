@@ -1,17 +1,13 @@
 package types_test
 
 import (
-	"github.com/desmos-labs/desmos/x/posts/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/desmos-labs/desmos/x/posts/types"
 
 	"testing"
 	"time"
 )
-
-func TestPollAnswer_String(t *testing.T) {
-	answer := types.NewPollAnswer("1", "Yes")
-	require.Equal(t, `Answer - ID: 1 ; Text: Yes`, answer.String())
-}
 
 func TestPollAnswer_Validate(t *testing.T) {
 	answer := types.NewPollAnswer("0", "")
@@ -55,28 +51,6 @@ func TestPollAnswer_Equals(t *testing.T) {
 
 // ___________________________________________________________________________________________________________________
 
-func TestPollData_String(t *testing.T) {
-	var timeZone, _ = time.LoadLocation("UTC")
-	var pollEndDate = time.Date(2050, 1, 1, 15, 15, 00, 000, timeZone)
-
-	pollData := types.NewPollData(
-		"poll?",
-		pollEndDate,
-		types.NewPollAnswers(
-			types.NewPollAnswer("1", "Yes"),
-			types.NewPollAnswer("2", "No"),
-		),
-		false,
-		true,
-	)
-
-	require.Equal(
-		t,
-		"Question: poll?\nEndDate: 2050-01-01 15:15:00 +0000 UTC\nAllow multiple answers: false \nAllow answer edits: true \nProvided Answers:\n[ID] [Text]\n[1] [Yes]\n[2] [No]",
-		pollData.String(),
-	)
-}
-
 func TestPollData_Validate(t *testing.T) {
 	var timeZone, _ = time.LoadLocation("UTC")
 	var pollEndDate = time.Date(2050, 1, 1, 15, 15, 00, 000, timeZone)
@@ -87,7 +61,7 @@ func TestPollData_Validate(t *testing.T) {
 	}{
 		{
 			pollData: types.NewPollData("", pollEndDate, types.PollAnswers{}, true, true),
-			expError: "missing poll title",
+			expError: "missing poll question",
 		},
 		{
 			pollData: types.NewPollData("title", time.Time{}, types.PollAnswers{}, true, true),
@@ -102,11 +76,6 @@ func TestPollData_Validate(t *testing.T) {
 	for _, test := range tests {
 		require.Equal(t, test.expError, test.pollData.Validate().Error())
 	}
-}
-
-func TestUserAnswer_String(t *testing.T) {
-	userPollAnswers := types.NewUserAnswer([]string{"1", "2"}, "cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns")
-	require.Equal(t, "User: cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns \nAnswers IDs: 1 2", userPollAnswers.String())
 }
 
 func TestUserAnswer_Validate(t *testing.T) {

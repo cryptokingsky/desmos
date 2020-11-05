@@ -20,7 +20,7 @@ func TestValidateGenesis(t *testing.T) {
 			shouldError: false,
 		},
 		{
-			name: "Genesis with invalid relationship return error",
+			name: "Genesis with invalid relationship returns error",
 			genesis: types.NewGenesisState(
 				[]types.Relationship{
 					types.NewRelationship(
@@ -49,7 +49,7 @@ func TestValidateGenesis(t *testing.T) {
 					),
 				},
 			),
-			shouldError: false,
+			shouldError: true,
 		},
 		{
 			name: "Genesis with invalid users blocks return error",

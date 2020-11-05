@@ -24,10 +24,10 @@ func (suite *KeeperTestSuite) Test_handleMsgReportPost() {
 			name:        "post not found",
 			storedPosts: nil,
 			msg: types.NewMsgReportPost(
-				suite.testData.postID.String(),
+				suite.testData.postID,
 				"type",
 				"message",
-				suite.testData.creator.String(),
+				suite.testData.creator,
 			),
 			expErr: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("post with ID: %s doesn't exist", suite.testData.postID)),
 		},
@@ -44,10 +44,10 @@ func (suite *KeeperTestSuite) Test_handleMsgReportPost() {
 				},
 			},
 			msg: types.NewMsgReportPost(
-				suite.testData.postID.String(),
+				suite.testData.postID,
 				"type",
 				"message",
-				suite.testData.creator.String(),
+				suite.testData.creator,
 			),
 			expErr: nil,
 		},
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) Test_handleMsgReportPost() {
 				// Check the events
 				createReportEv := sdk.NewEvent(
 					types.EventTypePostReported,
-					sdk.NewAttribute(types.AttributeKeyPostID, suite.testData.postID.String()),
+					sdk.NewAttribute(types.AttributeKeyPostID, suite.testData.postID),
 					sdk.NewAttribute(types.AttributeKeyReportOwner, test.msg.User),
 				)
 

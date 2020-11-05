@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	types2 "github.com/desmos-labs/desmos/x/posts/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/desmos-labs/desmos/x/reports/types"
 
@@ -46,7 +46,7 @@ func TestMsgReportPost_ValidateBasic(t *testing.T) {
 				"message",
 				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 			),
-			error: sdkerrors.Wrap(types2.ErrInvalidPostID, "123"),
+			error: sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid post id: %s", "123"),
 		},
 		{
 			name: "invalid reports returns error",
@@ -81,7 +81,7 @@ func TestMsgReportPost_GetSignBytes(t *testing.T) {
 		"message",
 		"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 	)
-	expected := `{"type":"desmos/MsgReportPost","value":{"post_id":"19de02e105c68a60e45c289bff19fde745bca9c63c38f2095b59e8e8090ae1af","report":{"message":"message","type":"type","user":"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns"}}}`
+	expected := `{"type":"desmos/MsgReportPost","value":{"message":"message","post_id":"19de02e105c68a60e45c289bff19fde745bca9c63c38f2095b59e8e8090ae1af","report_type":"type","user":"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns"}}`
 	require.Equal(t, expected, string(msg.GetSignBytes()))
 }
 
@@ -92,6 +92,6 @@ func TestNewMsgReportPost_GetSigners(t *testing.T) {
 		"message",
 		"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 	)
-	require.Equal(t, 1, len(msg.GetSigners()))
-	require.Equal(t, msg.User, msg.GetSigners()[0])
+	addr, _ := sdk.AccAddressFromBech32(msg.User)
+	require.Equal(t, []sdk.AccAddress{addr}, msg.GetSigners())
 }

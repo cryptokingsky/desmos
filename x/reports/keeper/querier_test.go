@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/desmos-labs/desmos/x/reports/keeper"
 	"github.com/desmos-labs/desmos/x/reports/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func (suite *KeeperTestSuite) Test_queryReports() {
@@ -31,13 +32,13 @@ func (suite *KeeperTestSuite) Test_queryReports() {
 					"1234",
 					"type",
 					"message",
-					suite.testData.creator.String(),
+					suite.testData.creator,
 				),
 				types.NewReport(
 					"other_post",
 					"type",
 					"message",
-					suite.testData.creator.String(),
+					suite.testData.creator,
 				),
 			},
 			expErr: nil,
@@ -46,13 +47,13 @@ func (suite *KeeperTestSuite) Test_queryReports() {
 					"1234",
 					"type",
 					"message",
-					suite.testData.creator.String(),
+					suite.testData.creator,
 				),
 			}},
 		},
 		{
 			name:          "Empty stored and valid ID",
-			path:          []string{types.QueryReports, suite.testData.postID.String()},
+			path:          []string{types.QueryReports, suite.testData.postID},
 			storedReports: nil,
 			expErr:        nil,
 			expResponse:   types.QueryPostReportsResponse{Reports: []types.Report{}},

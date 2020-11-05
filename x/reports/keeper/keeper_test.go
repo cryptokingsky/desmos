@@ -10,7 +10,7 @@ func (suite *KeeperTestSuite) TestKeeper_CheckExistence() {
 	tests := []struct {
 		name         string
 		existentPost *posts.Post
-		postID       posts.PostID
+		postID       string
 		expBool      bool
 	}{
 		{
@@ -52,15 +52,15 @@ func (suite *KeeperTestSuite) TestKeeper_SaveReport() {
 	store := suite.ctx.KVStore(suite.storeKey)
 
 	report := types.NewReport(
-		suite.testData.postID.String(),
+		suite.testData.postID,
 		"type",
 		"message",
-		suite.testData.creator.String(),
+		suite.testData.creator,
 	)
 	err := suite.keeper.SaveReport(suite.ctx, report)
 	suite.Require().NoError(err)
 
-	reports, err := suite.keeper.UnmarshalReports(store.Get(types.ReportStoreKey(suite.testData.postID.String())))
+	reports, err := suite.keeper.UnmarshalReports(store.Get(types.ReportStoreKey(suite.testData.postID)))
 	suite.Require().NoError(err)
 
 	suite.Require().Equal(reports, []types.Report{report})
@@ -80,22 +80,22 @@ func (suite *KeeperTestSuite) TestKeeper_GetPostReports() {
 					"post_id",
 					"type",
 					"message",
-					suite.testData.creator.String(),
+					suite.testData.creator,
 				),
 				types.NewReport(
 					"another_post_id",
 					"type",
 					"message",
-					suite.testData.creator.String(),
+					suite.testData.creator,
 				),
 			},
 			postID: "post_id",
 			expected: []types.Report{
 				types.NewReport(
-					suite.testData.postID.String(),
+					suite.testData.postID,
 					"type",
 					"message",
-					suite.testData.creator.String(),
+					suite.testData.creator,
 				),
 			},
 		},
@@ -133,10 +133,10 @@ func (suite *KeeperTestSuite) TestKeeper_GetReports() {
 			name: "Empty stored are returned properly",
 			reports: []types.Report{
 				types.NewReport(
-					suite.testData.postID.String(),
+					suite.testData.postID,
 					"type",
 					"message",
-					suite.testData.creator.String(),
+					suite.testData.creator,
 				),
 			},
 		},

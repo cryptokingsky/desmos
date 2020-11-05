@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeletePostReaction() {
 			var stored keeper.WrappedPostReactions
 			suite.cdc.MustUnmarshalBinaryBare(store.Get(types.PostReactionsStoreKey(test.postID)), &stored)
 
-			suite.Len(stored, len(test.expectedStored))
+			suite.Len(stored.Reactions, len(test.expectedStored))
 			for index, like := range test.expectedStored {
 				suite.Require().Equal(like, stored.Reactions[index])
 			}

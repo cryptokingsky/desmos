@@ -3,6 +3,8 @@ package types
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/desmos-labs/desmos/x/commons"
 )
 
@@ -17,12 +19,14 @@ func NewRelationship(creator string, recipient string, subspace string) Relation
 
 // Validate implement Validator
 func (r Relationship) Validate() error {
-	if len(r.Creator) == 0 {
-		return fmt.Errorf("cretor cannot be empty")
+	_, err := sdk.AccAddressFromBech32(r.Creator)
+	if err != nil {
+		return fmt.Errorf("invalid creator address: %s", r.Creator)
 	}
 
-	if len(r.Recipient) == 0 {
-		return fmt.Errorf("recipient cannot be empty")
+	_, err = sdk.AccAddressFromBech32(r.Recipient)
+	if err != nil {
+		return fmt.Errorf("invalid recipient address: %s", r.Recipient)
 	}
 
 	if r.Creator == r.Recipient {

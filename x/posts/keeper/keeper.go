@@ -131,7 +131,7 @@ func (k Keeper) GetPosts(ctx sdk.Context) (posts types.Posts) {
 func (k Keeper) GetPostsFiltered(ctx sdk.Context, params types.QueryPostsParams) types.Posts {
 	filteredPosts := types.Posts{}
 	k.IteratePosts(ctx, func(_ int64, post types.Post) (stop bool) {
-		matchParentID, matchCreationTime, matchAllowsComments, matchSubspace, matchCreator, matchHashtags := true, true, true, true, true, true
+		matchParentID, matchCreationTime, matchSubspace, matchCreator, matchHashtags := true, true, true, true, true
 
 		// match parent id if valid
 		if types.IsValidPostID(params.ParentID) {
@@ -164,7 +164,7 @@ func (k Keeper) GetPostsFiltered(ctx sdk.Context, params types.QueryPostsParams)
 			}
 		}
 
-		if matchParentID && matchCreationTime && matchAllowsComments && matchSubspace && matchCreator && matchHashtags {
+		if matchParentID && matchCreationTime && matchSubspace && matchCreator && matchHashtags {
 			filteredPosts = append(filteredPosts, post)
 		}
 

@@ -148,7 +148,7 @@ func sendMsgDeleteRelationship(
 	r *rand.Rand, app *baseapp.BaseApp, ak authkeeper.AccountKeeper, bk bankkeeper.Keeper,
 	msg *types.MsgDeleteRelationship, ctx sdk.Context, chainID string, privkeys []crypto.PrivKey,
 ) error {
-	addr, _ := sdk.AccAddressFromBech32(msg.Sender)
+	addr, _ := sdk.AccAddressFromBech32(msg.User)
 	account := ak.GetAccount(ctx, addr)
 	coins := bk.SpendableCoins(ctx, account.GetAddress())
 

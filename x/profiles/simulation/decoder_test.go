@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
+
 	"github.com/desmos-labs/desmos/app"
 	"github.com/desmos-labs/desmos/x/profiles/keeper"
 
@@ -56,7 +57,7 @@ func TestDecodeStore(t *testing.T) {
 	}{
 		{"Profile", fmt.Sprintf("ProfileA: %s\nProfileB: %s\n", profile, profile)},
 		{"Address", fmt.Sprintf("AddressA: %s\nAddressB: %s\n", profile.Creator, profile.Creator)},
-		{"Requests", fmt.Sprintf("RequestsA: %s\nRequestsB: %s\n", requests, requests)},
+		{"Requests", fmt.Sprintf("RequestsA: %s\nRequestsB: %s\n", requests.Requests, requests.Requests)},
 		{"other", ""},
 	}
 

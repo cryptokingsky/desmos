@@ -71,11 +71,15 @@ func NewPollData(
 // Validate implements the validator interface
 func (data PollData) Validate() error {
 	if strings.TrimSpace(data.Question) == "" {
-		return fmt.Errorf("missing poll title")
+		return fmt.Errorf("missing poll question")
 	}
 
 	if data.EndDate.IsZero() {
 		return fmt.Errorf("invalid poll's end date")
+	}
+
+	if len(data.ProvidedAnswers) < 2 {
+		return fmt.Errorf("poll answers must be at least two")
 	}
 
 	for _, answer := range data.ProvidedAnswers {
@@ -106,6 +110,12 @@ func (answers UserAnswer) Validate() error {
 
 	if len(answers.Answers) == 0 {
 		return fmt.Errorf("answers cannot be empty")
+	}
+
+	for _, answer := range answers.Answers {
+		if strings.TrimSpace(answer) == "" {
+			return fmt.Errorf("invalid answer")
+		}
 	}
 
 	return nil

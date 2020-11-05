@@ -26,19 +26,6 @@ func TestNewUserBlock(t *testing.T) {
 	require.Equal(t, userBlock, actual)
 }
 
-func TestUserBlock_String(t *testing.T) {
-	userBlock := types.NewUserBlock(
-		"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
-		"cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4",
-		"idk",
-		"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
-	)
-	require.Equal(t,
-		"User Block: [Blocker] cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47 [Blocked] cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4 [Reason] idk [Subspace] 4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
-		userBlock.String(),
-	)
-}
-
 func TestUserBlock_Validate(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -167,7 +154,7 @@ func TestRelationship_Validate(t *testing.T) {
 				"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
 				"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 			),
-			expErr: fmt.Errorf("creator cannot be empty"),
+			expErr: fmt.Errorf("invalid creator address: "),
 		},
 		{
 			name: "Empty recipient returns error",
@@ -176,7 +163,7 @@ func TestRelationship_Validate(t *testing.T) {
 				"",
 				"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 			),
-			expErr: fmt.Errorf("recipient cannot be empty"),
+			expErr: fmt.Errorf("invalid recipient address: "),
 		},
 		{
 			name: "Invalid subspace returns error",

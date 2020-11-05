@@ -15,12 +15,12 @@ import (
 // NewMsgSaveProfile returns a new MsgSaveProfile instance
 func NewMsgSaveProfile(dtag string, moniker, bio, profilePic, coverPic string, creator string) *MsgSaveProfile {
 	return &MsgSaveProfile{
-		Dtag:       dtag,
-		Moniker:    moniker,
-		Bio:        bio,
-		ProfilePic: profilePic,
-		CoverPic:   coverPic,
-		Creator:    creator,
+		Dtag:           dtag,
+		Moniker:        moniker,
+		Bio:            bio,
+		ProfilePicture: profilePic,
+		CoverPicture:   coverPic,
+		Creator:        creator,
 	}
 }
 
@@ -34,7 +34,7 @@ func (msg MsgSaveProfile) Type() string { return ActionSaveProfile }
 func (msg MsgSaveProfile) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("invalid creator address: %s", msg.Creator))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("invalid creator: %s", msg.Creator))
 	}
 
 	if strings.TrimSpace(msg.Dtag) == "" {
@@ -74,7 +74,7 @@ func (msg MsgDeleteProfile) Type() string { return ActionDeleteProfile }
 func (msg MsgDeleteProfile) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("invalid creator address: %s", msg.Creator))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("invalid creator: %s", msg.Creator))
 	}
 
 	return nil
@@ -272,6 +272,6 @@ func (msg MsgRefuseDTagTransfer) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (msg MsgRefuseDTagTransfer) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(msg.Sender)
+	addr, _ := sdk.AccAddressFromBech32(msg.Receiver)
 	return []sdk.AccAddress{addr}
 }

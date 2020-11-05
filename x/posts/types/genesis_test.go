@@ -37,7 +37,7 @@ func TestValidateGenesis(t *testing.T) {
 				types.Posts{},
 				nil,
 				[]types.PostReactionsEntry{
-					types.NewPostReactionsEntry("1", []types.PostReaction{{Owner: nil}}),
+					types.NewPostReactionsEntry("1", []types.PostReaction{{Owner: ""}}),
 				},
 				nil,
 				types.DefaultParams(),

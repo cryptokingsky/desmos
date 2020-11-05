@@ -77,8 +77,8 @@ func (suite *KeeperTestSuite) Test_handleMsgCreateSession() {
 				}
 
 				var stored types.Session
-				store := suite.ctx.KVStore(suite.keeper.storeKey)
-				suite.keeper.cdc.MustUnmarshalBinaryBare(store.Get(types.SessionStoreKey(expectedID)), &stored)
+				store := suite.ctx.KVStore(suite.storeKey)
+				suite.cdc.MustUnmarshalBinaryBare(store.Get(types.SessionStoreKey(expectedID)), &stored)
 				suite.Require().Equal(session, stored)
 
 				// Check the events

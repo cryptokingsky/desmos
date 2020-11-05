@@ -36,7 +36,8 @@ message Post {
     (gogoproto.moretags) = "yaml\"created\""
   ];
   bool allows_comments = 6 [
-    (gogoproto.moretags) = "yaml\"allows_comments\""
+    (gogoproto.moretags) = "yaml\"allows_comments\"",
+    (gogoproto.jsontag) = "allows_comments"
   ];
   string subspace = 7 [
     (gogoproto.moretags) = "yaml\"subspace\""
@@ -44,6 +45,7 @@ message Post {
   repeated desmos.posts.v1beta1.OptionalDataEntry optional_data = 8 [
     (gogoproto.castrepeated) = "OptionalData",
     (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "optional_data,omitempty",
     (gogoproto.moretags) = "yaml\"optional_data,omitempty\""
   ];
   string creator = 9 [

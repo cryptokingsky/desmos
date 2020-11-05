@@ -82,10 +82,10 @@ func RandomQueryParams(r *rand.Rand) types.QueryPostsParams {
 		Limit:        int32(r.Intn(100)),
 		SortBy:       sortBy,
 		SortOrder:    sortOrder,
-		ParentID:     nil,
+		ParentID:     "",
 		CreationTime: nil,
 		Subspace:     "",
-		Creator:      nil,
+		Creator:      "",
 		Hashtags:     nil,
 	}
 }

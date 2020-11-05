@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/desmos-labs/desmos/x/relationships"
+	relationshipstypes "github.com/desmos-labs/desmos/x/relationships/types"
 
 	"github.com/desmos-labs/desmos/x/profiles/keeper"
 
@@ -14,27 +12,31 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestKeeper_IsUserBlocked() {
-	user, _ := sdk.AccAddressFromBech32("cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47")
-	otherUser, _ := sdk.AccAddressFromBech32("cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns")
-
 	tests := []struct {
 		name       string
-		blocker    sdk.AccAddress
-		blocked    sdk.AccAddress
-		userBlocks []relationships.UserBlock
+		blocker    string
+		blocked    string
+		userBlocks []relationshipstypes.UserBlock
 		expBool    bool
 	}{
 		{
-			name:       "blocked user found returns true",
-			blocker:    user,
-			blocked:    otherUser,
-			userBlocks: []relationships.UserBlock{relationships.NewUserBlock(user, otherUser, "test", "")},
-			expBool:    true,
+			name:    "blocked user found returns true",
+			blocker: "cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
+			blocked: "cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
+			userBlocks: []relationshipstypes.UserBlock{
+				relationshipstypes.NewUserBlock(
+					"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
+					"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
+					"test",
+					"",
+				),
+			},
+			expBool: true,
 		},
 		{
 			name:       "non blocked user not found returns false",
-			blocker:    user,
-			blocked:    otherUser,
+			blocker:    "cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
+			blocked:    "cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 			userBlocks: nil,
 			expBool:    false,
 		},
@@ -44,7 +46,7 @@ func (suite *KeeperTestSuite) TestKeeper_IsUserBlocked() {
 		suite.Run(test.name, func() {
 			suite.SetupTest()
 			if test.userBlocks != nil {
-				_ = suite.relationshipsKeeper.SaveUserBlock(suite.ctx, test.userBlocks[0])
+				_ = suite.rk.SaveUserBlock(suite.ctx, test.userBlocks[0])
 			}
 			res := suite.keeper.IsUserBlocked(suite.ctx, test.blocker, test.blocked)
 			suite.Equal(test.expBool, res)

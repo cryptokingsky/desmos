@@ -137,16 +137,6 @@ func (post Post) GetPostHashtags() []string {
 // Posts represents a slice of Post objects
 type Posts []Post
 
-// String implements stringer interface
-func (posts Posts) String() string {
-	out := "ID - [Creator] Message\n"
-	for _, post := range posts {
-		out += fmt.Sprintf("%s - [%s] %s\n",
-			post.PostID, post.Creator, post.Message)
-	}
-	return strings.TrimSpace(out)
-}
-
 // Len implements sort.Interface
 func (posts Posts) Len() int {
 	return len(posts)

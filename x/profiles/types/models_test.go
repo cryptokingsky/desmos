@@ -60,7 +60,7 @@ func TestProfile_Validate(t *testing.T) {
 				time.Unix(100, 0),
 				"",
 			),
-			expErr: fmt.Errorf("profile creator cannot be empty or blank"),
+			expErr: fmt.Errorf("invalid creator address: "),
 		},
 		{
 			name: "Empty profile DTag returns error",
@@ -75,7 +75,7 @@ func TestProfile_Validate(t *testing.T) {
 				time.Unix(100, 0),
 				"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
 			),
-			expErr: fmt.Errorf("profile dtag cannot be empty or blank"),
+			expErr: fmt.Errorf("invalid profile DTag: "),
 		},
 		{
 			name: "Invalid profile pictures returns error",
@@ -138,7 +138,7 @@ func TestDTagTransferRequest_Validate(t *testing.T) {
 				"",
 				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 			),
-			expErr: fmt.Errorf("receiver address cannot be empty"),
+			expErr: fmt.Errorf("invalid receiver address: "),
 		},
 		{
 			name: "Empty request sender returns error",
@@ -147,7 +147,7 @@ func TestDTagTransferRequest_Validate(t *testing.T) {
 				"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
 				"",
 			),
-			expErr: fmt.Errorf("sender address cannot be empty"),
+			expErr: fmt.Errorf("invalid sender address: "),
 		},
 		{
 			name: "Equals request receiver and request sender addresses return error",
