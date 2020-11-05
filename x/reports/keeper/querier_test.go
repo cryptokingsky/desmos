@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"encoding/json"
-
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -16,20 +14,20 @@ func (suite *KeeperTestSuite) Test_queryReports() {
 		path          []string
 		storedReports []types.Report
 		expErr        error
-		expResponse   types.QueryPostReportsResponse
+		expResponse   []types.Report
 	}{
 		{
-			name:          "Invalid ID",
+			name:          "Invalid Post ID",
 			path:          []string{types.QueryReports, "1234"},
 			storedReports: nil,
 			expErr:        sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "invalid postID: 1234"),
 		},
 		{
-			name: "Non empty stored and valid ID",
-			path: []string{types.QueryReports, "1234"},
+			name: "Valid request returns correctly",
+			path: []string{types.QueryReports, suite.testData.postID},
 			storedReports: []types.Report{
 				types.NewReport(
-					"1234",
+					suite.testData.postID,
 					"type",
 					"message",
 					suite.testData.creator,
@@ -41,22 +39,20 @@ func (suite *KeeperTestSuite) Test_queryReports() {
 					suite.testData.creator,
 				),
 			},
-			expErr: nil,
-			expResponse: types.QueryPostReportsResponse{Reports: []types.Report{
+			expResponse: []types.Report{
 				types.NewReport(
-					"1234",
+					suite.testData.postID,
 					"type",
 					"message",
 					suite.testData.creator,
 				),
-			}},
+			},
 		},
 		{
 			name:          "Empty stored and valid ID",
 			path:          []string{types.QueryReports, suite.testData.postID},
 			storedReports: nil,
-			expErr:        nil,
-			expResponse:   types.QueryPostReportsResponse{Reports: []types.Report{}},
+			expResponse:   nil,
 		},
 	}
 
@@ -76,9 +72,10 @@ func (suite *KeeperTestSuite) Test_queryReports() {
 			if result != nil {
 				suite.Require().Nil(err)
 
-				expectedIndented, err := json.MarshalIndent(&test.expResponse, "", "")
+				var reports []types.Report
+				err := suite.legacyAminoCdc.UnmarshalJSON(result, &reports)
 				suite.Require().NoError(err)
-				suite.Require().Equal(string(expectedIndented), string(result))
+				suite.Require().Equal(test.expResponse, reports)
 			}
 
 			if result == nil {

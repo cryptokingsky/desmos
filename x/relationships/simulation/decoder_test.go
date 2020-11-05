@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/desmos-labs/desmos/x/relationships/keeper"
+
 	"github.com/desmos-labs/desmos/app"
 	"github.com/desmos-labs/desmos/x/relationships/simulation"
 
@@ -15,8 +17,8 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-	desmosApp := app.SetupSimApp(false)
-	dec := simulation.NewDecodeStore(desmosApp.RelationshipsKeeper)
+	cdc, _ := app.MakeCodecs()
+	dec := simulation.NewDecodeStore(cdc)
 
 	firstAddr := ed25519.GenPrivKey().PubKey().Address().String()
 	secondAddr := ed25519.GenPrivKey().PubKey().Address().String()
@@ -33,7 +35,7 @@ func TestDecodeStore(t *testing.T) {
 			"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 		),
 	}
-	relBz, err := desmosApp.RelationshipsKeeper.MarshalRelationships(relationships)
+	relBz, err := cdc.MarshalBinaryBare(&keeper.WrappedRelationships{Relationships: relationships})
 	require.NoError(t, err)
 
 	usersBlocks := []types.UserBlock{
@@ -50,7 +52,7 @@ func TestDecodeStore(t *testing.T) {
 			"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 		),
 	}
-	blocksBz, err := desmosApp.RelationshipsKeeper.MarshalUserBlocks(usersBlocks)
+	blocksBz, err := cdc.MarshalBinaryBare(&keeper.WrappedUserBlocks{Blocks: usersBlocks})
 	require.NoError(t, err)
 
 	kvPairs := kv.Pairs{Pairs: []kv.Pair{

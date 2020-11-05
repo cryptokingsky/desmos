@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/desmos-labs/desmos/x/relationships/keeper"
+
 	"github.com/desmos-labs/desmos/x/relationships/types"
 )
 
@@ -83,12 +85,12 @@ func (suite *KeeperTestSuite) TestKeeper_StoreRelationship() {
 		suite.Run(test.name, func() {
 			if test.stored != nil {
 				store := suite.ctx.KVStore(suite.storeKey)
-				bz, err := suite.keeper.MarshalRelationships(test.stored)
+				bz, err := suite.cdc.MarshalBinaryBare(&keeper.WrappedRelationships{Relationships: test.stored})
 				suite.Require().NoError(err)
 
 				store.Set(types.RelationshipsStoreKey(test.user), bz)
 			}
-			err := suite.keeper.StoreRelationship(suite.ctx, test.relationship)
+			err := suite.k.StoreRelationship(suite.ctx, test.relationship)
 			suite.Require().Equal(test.expErr, err)
 		})
 	}
@@ -138,14 +140,17 @@ func (suite *KeeperTestSuite) TestKeeper_GetUsersRelationships() {
 		suite.SetupTest()
 		suite.Run(test.name, func() {
 			for _, rel := range test.stored {
-				err := suite.keeper.StoreRelationship(suite.ctx, rel)
+				err := suite.k.StoreRelationship(suite.ctx, rel)
 				suite.Require().NoError(err)
 			}
 
-			relationships, err := suite.keeper.GetAllRelationships(suite.ctx)
+			relationships, err := suite.k.GetAllRelationships(suite.ctx)
 			suite.Require().NoError(err)
 
-			suite.Require().Equal(test.expected, relationships)
+			suite.Require().Len(relationships, len(test.expected))
+			for _, rel := range relationships {
+				suite.Require().Contains(test.expected, rel)
+			}
 		})
 	}
 
@@ -155,6 +160,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetUserRelationships() {
 	tests := []struct {
 		name     string
 		stored   []types.Relationship
+		user     string
 		expected []types.Relationship
 	}{
 		{
@@ -171,15 +177,11 @@ func (suite *KeeperTestSuite) TestKeeper_GetUserRelationships() {
 					"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 				),
 			},
+			user: "cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 			expected: []types.Relationship{
 				types.NewRelationship(
 					"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 					"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
-					"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
-				),
-				types.NewRelationship(
-					"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
-					"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 					"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 				),
 			},
@@ -194,15 +196,12 @@ func (suite *KeeperTestSuite) TestKeeper_GetUserRelationships() {
 	for _, test := range tests {
 		suite.SetupTest()
 		suite.Run(test.name, func() {
-			if test.stored != nil {
-				store := suite.ctx.KVStore(suite.storeKey)
-				bz, err := suite.keeper.MarshalRelationships(test.stored)
+			for _, rel := range test.stored {
+				err := suite.k.StoreRelationship(suite.ctx, rel)
 				suite.Require().NoError(err)
-
-				store.Set(types.RelationshipsStoreKey(suite.testData.user), bz)
 			}
 
-			relationships, err := suite.keeper.GetUserRelationships(suite.ctx, suite.testData.user)
+			relationships, err := suite.k.GetUserRelationships(suite.ctx, test.user)
 			suite.Require().NoError(err)
 
 			suite.Require().Equal(test.expected, relationships)
@@ -285,24 +284,22 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteRelationship() {
 	for _, test := range tests {
 		suite.SetupTest()
 		suite.Run(test.name, func() {
-			store := suite.ctx.KVStore(suite.storeKey)
-			if test.stored != nil {
-				bz, err := suite.keeper.MarshalRelationships(test.stored)
+			for _, rel := range test.stored {
+				err := suite.k.StoreRelationship(suite.ctx, rel)
 				suite.Require().NoError(err)
-
-				store.Set(types.RelationshipsStoreKey(suite.testData.user), bz)
 			}
 
-			err := suite.keeper.DeleteRelationship(suite.ctx, test.relationshipToDelete)
+			err := suite.k.DeleteRelationship(suite.ctx, test.relationshipToDelete)
 			suite.Require().NoError(err)
 
-			rel, err := suite.keeper.GetUserRelationships(suite.ctx, suite.testData.user)
+			rel, err := suite.k.GetAllRelationships(suite.ctx)
 			suite.Require().NoError(err)
-
 			suite.Require().Equal(test.expRelationships, rel)
 		})
 	}
 }
+
+// ___________________________________________________________________________________________________________________
 
 func (suite *KeeperTestSuite) TestKeeper_SaveUserBlock() {
 	tests := []struct {
@@ -314,16 +311,31 @@ func (suite *KeeperTestSuite) TestKeeper_SaveUserBlock() {
 		{
 			name: "already blocked user returns error",
 			storedUserBlocks: []types.UserBlock{
-				types.NewUserBlock(suite.testData.user, suite.testData.otherUser, "reason", "4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e"),
+				types.NewUserBlock(
+					suite.testData.user,
+					suite.testData.otherUser,
+					"reason",
+					"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
+				),
 			},
-			userBlock: types.NewUserBlock(suite.testData.user, suite.testData.otherUser, "reason", "4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e"),
-			expErr:    fmt.Errorf("the user with %s address has already been blocked", suite.testData.otherUser),
+			userBlock: types.NewUserBlock(
+				suite.testData.user,
+				suite.testData.otherUser,
+				"reason",
+				"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
+			),
+			expErr: fmt.Errorf("the user with address %s has already been blocked", suite.testData.otherUser),
 		},
 		{
 			name:             "user block added correctly",
 			storedUserBlocks: nil,
-			userBlock:        types.NewUserBlock(suite.testData.user, suite.testData.otherUser, "reason", "4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e"),
-			expErr:           nil,
+			userBlock: types.NewUserBlock(
+				suite.testData.user,
+				suite.testData.otherUser,
+				"reason",
+				"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
+			),
+			expErr: nil,
 		},
 	}
 
@@ -332,12 +344,12 @@ func (suite *KeeperTestSuite) TestKeeper_SaveUserBlock() {
 		suite.Run(test.name, func() {
 			if test.storedUserBlocks != nil {
 				store := suite.ctx.KVStore(suite.storeKey)
-				bz, err := suite.keeper.MarshalUserBlocks(test.storedUserBlocks)
+				bz, err := suite.cdc.MarshalBinaryBare(&keeper.WrappedUserBlocks{Blocks: test.storedUserBlocks})
 				suite.Require().NoError(err)
 
 				store.Set(types.UsersBlocksStoreKey(suite.testData.user), bz)
 			}
-			err := suite.keeper.SaveUserBlock(suite.ctx, test.userBlock)
+			err := suite.k.SaveUserBlock(suite.ctx, test.userBlock)
 			suite.Require().Equal(test.expErr, err)
 		})
 	}
@@ -404,15 +416,12 @@ func (suite *KeeperTestSuite) TestKeeper_UnblockUser() {
 	for _, test := range tests {
 		suite.SetupTest()
 		suite.Run(test.name, func() {
-			store := suite.ctx.KVStore(suite.storeKey)
-			if test.storedUserBlocks != nil {
-				bz, err := suite.keeper.MarshalUserBlocks(test.storedUserBlocks)
+			for _, block := range test.storedUserBlocks {
+				err := suite.k.SaveUserBlock(suite.ctx, block)
 				suite.Require().NoError(err)
-
-				store.Set(types.UsersBlocksStoreKey(suite.testData.user), bz)
 			}
 
-			err := suite.keeper.DeleteUserBlock(
+			err := suite.k.DeleteUserBlock(
 				suite.ctx,
 				suite.testData.user,
 				test.userToUnblock,
@@ -420,7 +429,7 @@ func (suite *KeeperTestSuite) TestKeeper_UnblockUser() {
 			)
 			suite.Require().Equal(test.expError, err)
 
-			blocks, err := suite.keeper.GetUserBlocks(suite.ctx, suite.testData.user)
+			blocks, err := suite.k.GetUserBlocks(suite.ctx, suite.testData.user)
 			suite.Require().NoError(err)
 			suite.Require().Equal(test.expBlocks, blocks)
 		})
@@ -462,22 +471,12 @@ func (suite *KeeperTestSuite) TestKeeper_GetUserBlocks() {
 	for _, test := range tests {
 		suite.SetupTest()
 		suite.Run(test.name, func() {
-			if test.storedUserBlocks != nil {
-				store := suite.ctx.KVStore(suite.storeKey)
-				bz, err := suite.keeper.MarshalUserBlocks([]types.UserBlock{
-					types.NewUserBlock(
-						suite.testData.user,
-						"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
-						"reason",
-						"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
-					),
-				})
+			for _, block := range test.storedUserBlocks {
+				err := suite.k.SaveUserBlock(suite.ctx, block)
 				suite.Require().NoError(err)
-
-				store.Set(types.UsersBlocksStoreKey(suite.testData.user), bz)
 			}
 
-			blocks, err := suite.keeper.GetUserBlocks(suite.ctx, suite.testData.user)
+			blocks, err := suite.k.GetUserBlocks(suite.ctx, suite.testData.user)
 			suite.Require().NoError(err)
 
 			suite.Require().Equal(test.expUserBlocks, blocks)
@@ -528,14 +527,17 @@ func (suite *KeeperTestSuite) TestKeeper_GetUsersBlocks() {
 		suite.SetupTest()
 		suite.Run(test.name, func() {
 			for _, userBlock := range test.storedUsersBlocks {
-				err := suite.keeper.SaveUserBlock(suite.ctx, userBlock)
+				err := suite.k.SaveUserBlock(suite.ctx, userBlock)
 				suite.Require().NoError(err)
 			}
 
-			actualBlocks, err := suite.keeper.GetUsersBlocks(suite.ctx)
+			actualBlocks, err := suite.k.GetUsersBlocks(suite.ctx)
 			suite.Require().NoError(err)
 
-			suite.Require().Equal(test.expUsersBlocks, actualBlocks)
+			suite.Require().Len(actualBlocks, len(test.expUsersBlocks))
+			for _, block := range test.expUsersBlocks {
+				suite.Require().Contains(actualBlocks, block)
+			}
 		})
 	}
 }
@@ -576,11 +578,11 @@ func (suite *KeeperTestSuite) TestKeeper_IsUserBlocked() {
 			suite.SetupTest()
 
 			for _, block := range test.userBlocks {
-				err := suite.keeper.SaveUserBlock(suite.ctx, block)
+				err := suite.k.SaveUserBlock(suite.ctx, block)
 				suite.Require().NoError(err)
 			}
 
-			res := suite.keeper.IsUserBlocked(suite.ctx, test.blocker, test.blocked)
+			res := suite.k.IsUserBlocked(suite.ctx, test.blocker, test.blocked)
 			suite.Equal(test.expBool, res)
 		})
 	}

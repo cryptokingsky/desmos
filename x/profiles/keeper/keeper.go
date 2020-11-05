@@ -48,8 +48,8 @@ func (k Keeper) IsUserBlocked(ctx sdk.Context, blocker, blocked string) bool {
 // AssociateDtagWithAddress save the relation of dtag and address on chain
 func (k Keeper) AssociateDtagWithAddress(ctx sdk.Context, dtag string, address string) {
 	store := ctx.KVStore(k.storeKey)
-	owner := NewDTagOwner(address)
-	store.Set(types.DtagStoreKey(dtag), k.cdc.MustMarshalBinaryBare(&owner))
+	wrapped := WrappedDTagOwner{Address: address}
+	store.Set(types.DtagStoreKey(dtag), k.cdc.MustMarshalBinaryBare(&wrapped))
 }
 
 // GetDtagRelatedAddress returns the address associated to the given dtag or an empty string if it does not exists
@@ -60,7 +60,7 @@ func (k Keeper) GetDtagRelatedAddress(ctx sdk.Context, dtag string) (addr string
 		return ""
 	}
 
-	var owner DTagOwner
+	var owner WrappedDTagOwner
 	k.cdc.MustUnmarshalBinaryBare(bz, &owner)
 	return owner.Address
 }
@@ -195,13 +195,13 @@ func (k Keeper) ValidateProfile(ctx sdk.Context, profile types.Profile) error {
 
 // ___________________________________________________________________________________________________________________
 
-// SaveDTagTransferRequest save the given request into the currentOwner's requests
-// returning errors if an equal one already exists.
+// SaveDTagTransferRequest save the given request associating it to the request recipient.
+// It returns an error if the same request already exists.
 func (k Keeper) SaveDTagTransferRequest(ctx sdk.Context, transferRequest types.DTagTransferRequest) error {
 	store := ctx.KVStore(k.storeKey)
 	key := types.DtagTransferRequestStoreKey(transferRequest.Receiver)
 
-	var requests DTagRequests
+	var requests WrappedDTagTransferRequests
 	k.cdc.MustUnmarshalBinaryBare(store.Get(key), &requests)
 	for _, req := range requests.Requests {
 		if req.Equal(transferRequest) {
@@ -210,7 +210,7 @@ func (k Keeper) SaveDTagTransferRequest(ctx sdk.Context, transferRequest types.D
 		}
 	}
 
-	requests = NewDTagRequests(append(requests.Requests, transferRequest))
+	requests = NewWrappedDTagTransferRequests(append(requests.Requests, transferRequest))
 	store.Set(key, k.cdc.MustMarshalBinaryBare(&requests))
 	return nil
 }
@@ -220,7 +220,7 @@ func (k Keeper) GetUserDTagTransferRequests(ctx sdk.Context, user string) []type
 	store := ctx.KVStore(k.storeKey)
 	key := types.DtagTransferRequestStoreKey(user)
 
-	var requests DTagRequests
+	var requests WrappedDTagTransferRequests
 	k.cdc.MustUnmarshalBinaryBare(store.Get(key), &requests)
 	return requests.Requests
 }
@@ -231,7 +231,7 @@ func (k Keeper) GetDTagTransferRequests(ctx sdk.Context) (requests []types.DTagT
 	iterator := sdk.KVStorePrefixIterator(store, types.DTagTransferRequestsPrefix)
 
 	for ; iterator.Valid(); iterator.Next() {
-		var userRequests DTagRequests
+		var userRequests WrappedDTagTransferRequests
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &userRequests)
 		requests = append(requests, userRequests.Requests...)
 	}
@@ -250,18 +250,16 @@ func (k Keeper) DeleteDTagTransferRequest(ctx sdk.Context, sender, recipient str
 	store := ctx.KVStore(k.storeKey)
 	key := types.DtagTransferRequestStoreKey(recipient)
 
-	var reqs DTagRequests
-	k.cdc.MustUnmarshalBinaryBare(store.Get(key), &reqs)
+	var wrapped WrappedDTagTransferRequests
+	k.cdc.MustUnmarshalBinaryBare(store.Get(key), &wrapped)
 
-	requests := reqs.Requests
-	for index, request := range requests {
+	for index, request := range wrapped.Requests {
 		if request.Sender == sender {
-			requests = append(requests[:index], requests[index+1:]...)
+			requests := append(wrapped.Requests[:index], wrapped.Requests[index+1:]...)
 			if len(requests) == 0 {
 				store.Delete(key)
 			} else {
-				reqs = NewDTagRequests(requests)
-				store.Set(key, k.cdc.MustMarshalBinaryBare(&reqs))
+				store.Set(key, k.cdc.MustMarshalBinaryBare(&WrappedDTagTransferRequests{Requests: requests}))
 			}
 			break
 		}

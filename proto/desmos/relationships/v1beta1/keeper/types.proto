@@ -1,0 +1,21 @@
+syntax = "proto3";
+package desmos.relationships.v1beta1.keeper;
+
+import "gogoproto/gogo.proto";
+import "desmos/relationships/v1beta1/models.proto";
+
+option go_package = "github.com/desmos-labs/desmos/x/relationships/keeper";
+
+// WrappedRelationships wraps a list of Relationship objects
+message WrappedRelationships {
+  repeated desmos.relationships.v1beta1.Relationship relationships = 1 [
+    (gogoproto.nullable) = false
+  ];
+}
+
+// WrappedUserBlocks wraps a list of UserBlock objects
+message WrappedUserBlocks {
+  repeated desmos.relationships.v1beta1.UserBlock blocks = 1 [
+    (gogoproto.nullable) = false
+  ];
+}

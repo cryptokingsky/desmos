@@ -65,7 +65,6 @@ func (k msgServer) BlockUser(goCtx context.Context, msg *types.MsgBlockUser) (*t
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	userBlock := types.NewUserBlock(msg.Blocker, msg.Blocked, msg.Reason, msg.Subspace)
-
 	if err := k.SaveUserBlock(ctx, userBlock); err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}

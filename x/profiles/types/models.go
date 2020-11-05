@@ -115,11 +115,11 @@ func (profile Profile) Validate() error {
 
 // ___________________________________________________________________________________________________________________
 
-func NewDTagTransferRequest(dtagToTrade string, receiver, sender string) DTagTransferRequest {
+func NewDTagTransferRequest(dtagToTrade string, sender, recipient string) DTagTransferRequest {
 	return DTagTransferRequest{
 		DtagToTrade: dtagToTrade,
-		Receiver:    receiver,
-		Sender:      sender,
+		Receiver:    sender,
+		Sender:      recipient,
 	}
 }
 

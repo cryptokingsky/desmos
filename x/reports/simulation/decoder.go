@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+
 	"github.com/desmos-labs/desmos/x/reports/keeper"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
@@ -12,21 +14,14 @@ import (
 )
 
 // NewDecodeStore unmarshalls the KVPair's Reports to the corresponding reports type
-func NewDecodeStore(k keeper.Keeper) func(kvA, kvB kv.Pair) string {
+func NewDecodeStore(cdc codec.BinaryMarshaler) func(kvA, kvB kv.Pair) string {
 	return func(kvA, kvB kv.Pair) string {
 		switch {
 		case bytes.HasPrefix(kvA.Key, types.ReportsStorePrefix):
-			reportsA, err := k.UnmarshalReports(kvA.Value)
-			if err != nil {
-				panic(err)
-			}
-
-			reportsB, err := k.UnmarshalReports(kvB.Value)
-			if err != nil {
-				panic(err)
-			}
-
-			return fmt.Sprintf("ReportsA: %s\nReportsB: %s\n", reportsA, reportsB)
+			var reportsA, reportsB keeper.WrappedReports
+			cdc.MustUnmarshalBinaryBare(kvA.Value, &reportsA)
+			cdc.MustUnmarshalBinaryBare(kvB.Value, &reportsB)
+			return fmt.Sprintf("ReportsA: %s\nReportsB: %s\n", reportsA.Reports, reportsB.Reports)
 
 		default:
 			panic(fmt.Sprintf("invalid account key %X", kvA.Key))

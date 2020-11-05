@@ -40,20 +40,22 @@ func (k Keeper) SaveReport(ctx sdk.Context, report types.Report) error {
 	key := types.ReportStoreKey(report.PostId)
 
 	// Get the list of stored related to the given postID
-	reports, err := k.UnmarshalReports(store.Get(key))
+	var wrapped WrappedReports
+	err := k.cdc.UnmarshalBinaryBare(store.Get(key), &wrapped)
 	if err != nil {
 		return err
 	}
 
-	// Append the given stored
-	reports = append(reports, report)
+	// Append the given report
+	if newWrapped, appended := wrapped.AppendIfMissing(report); appended {
+		bz, err := k.cdc.MarshalBinaryBare(&newWrapped)
+		if err != nil {
+			return err
+		}
 
-	bz, err := k.MarshalReports(reports)
-	if err != nil {
-		return err
+		store.Set(key, bz)
 	}
 
-	store.Set(key, bz)
 	return nil
 }
 
@@ -61,7 +63,14 @@ func (k Keeper) SaveReport(ctx sdk.Context, report types.Report) error {
 // If no stored is associated with the given postID the function will returns an empty list.
 func (k Keeper) GetPostReports(ctx sdk.Context, postID string) ([]types.Report, error) {
 	store := ctx.KVStore(k.storeKey)
-	return k.UnmarshalReports(store.Get(types.ReportStoreKey(postID)))
+
+	var wrapped WrappedReports
+	err := k.cdc.UnmarshalBinaryBare(store.Get(types.ReportStoreKey(postID)), &wrapped)
+	if err != nil {
+		return nil, err
+	}
+
+	return wrapped.Reports, nil
 }
 
 // GetReports returns the list of all the stored that have been stored inside the given context
@@ -73,30 +82,13 @@ func (k Keeper) GetReports(ctx sdk.Context) ([]types.Report, error) {
 
 	var reports []types.Report
 	for ; iterator.Valid(); iterator.Next() {
-		postReports, err := k.UnmarshalReports(iterator.Value())
+		var wrapped WrappedReports
+		err := k.cdc.UnmarshalBinaryBare(iterator.Value(), &wrapped)
 		if err != nil {
 			return nil, err
 		}
 
-		reports = append(reports, postReports...)
-	}
-
-	return reports, nil
-}
-
-// MarshalReports marshals a list of Report. If the given type implements
-// the Marshaler interface, it is treated as a Proto-defined message and
-// serialized that way. Otherwise, it falls back on the internal Amino codec.
-func (k Keeper) MarshalReports(reports []types.Report) ([]byte, error) {
-	return codec.MarshalAny(k.cdc, reports)
-}
-
-// UnmarshalReports returns a list of Report interface from raw encoded
-// blocks bytes. An error is returned upon decoding failure.
-func (k Keeper) UnmarshalReports(bz []byte) ([]types.Report, error) {
-	var reports []types.Report
-	if err := codec.UnmarshalAny(k.cdc, &reports, bz); err != nil {
-		return nil, err
+		reports = append(reports, wrapped.Reports...)
 	}
 
 	return reports, nil

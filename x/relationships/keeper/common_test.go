@@ -22,7 +22,7 @@ type KeeperTestSuite struct {
 	cdc          codec.Marshaler
 	legacyAmino  *codec.LegacyAmino
 	ctx          sdk.Context
-	keeper       keeper.Keeper
+	k            keeper.Keeper
 	storeKey     sdk.StoreKey
 	paramsKeeper paramskeeper.Keeper
 	testData     TestData
@@ -48,7 +48,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.ctx = sdk.NewContext(ms, tmproto.Header{ChainID: "test-chain-id"}, false, log.NewNopLogger())
 	suite.cdc, suite.legacyAmino = app.MakeCodecs()
-	suite.keeper = keeper.NewKeeper(suite.cdc, suite.storeKey)
+	suite.k = keeper.NewKeeper(suite.cdc, suite.storeKey)
 
 	suite.testData.user = "cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47"
 	suite.testData.otherUser = "cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns"

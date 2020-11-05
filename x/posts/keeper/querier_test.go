@@ -644,18 +644,19 @@ func (suite *KeeperTestSuite) Test_queryPollAnswers() {
 		{
 			name:     "Invalid post id returns error",
 			path:     []string{types.QueryPollAnswers, ""},
-			expError: sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "invalid postID: "),
+			expError: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid postID: "),
 		},
 		{
 			name:     "Post not found returns error",
 			path:     []string{types.QueryPollAnswers, "1"},
-			expError: sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "invalid postID: 1"),
+			expError: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid postID: 1"),
 		},
 		{
 			name: "No post associated with ID given",
 			path: []string{types.QueryPollAnswers, "f1b909289cd23188c19da17ae5d5a05ad65623b0fad756e5e03c8c936ca876fd"},
 			expError: sdkerrors.Wrapf(
-				sdkerrors.ErrUnknownRequest, "Post with id %s not found",
+				sdkerrors.ErrInvalidRequest,
+				"post with id %s not found",
 				"f1b909289cd23188c19da17ae5d5a05ad65623b0fad756e5e03c8c936ca876fd",
 			),
 		},
@@ -673,9 +674,10 @@ func (suite *KeeperTestSuite) Test_queryPollAnswers() {
 					Attachments:  suite.testData.post.Attachments,
 				},
 			},
-			expError: sdkerrors.Wrap(
+			expError: sdkerrors.Wrapf(
 				sdkerrors.ErrInvalidRequest,
-				"Post with id f1b909289cd23188c19da17ae5d5a05ad65623b0fad756e5e03c8c936ca876fd has no poll associated",
+				"post with id %s has no poll associated",
+				"f1b909289cd23188c19da17ae5d5a05ad65623b0fad756e5e03c8c936ca876fd",
 			),
 		},
 		{

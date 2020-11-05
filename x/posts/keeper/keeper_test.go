@@ -390,11 +390,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetPosts() {
 }
 
 func (suite *KeeperTestSuite) TestKeeper_GetPostsFiltered() {
-	timeZone, err := time.LoadLocation("UTC")
-	suite.Require().NoError(err)
-
-	date := time.Date(2020, 1, 1, 1, 1, 0, 0, timeZone)
-
+	date := time.Date(2020, 1, 1, 1, 1, 0, 0, time.FixedZone("UTC", 0))
 	posts := types.Posts{
 		types.Post{
 			PostID:       "f1b909289cd23188c19da17ae5d5a05ad65623b0fad756e5e03c8c936ca876fd",
@@ -408,7 +404,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetPostsFiltered() {
 			PostID:         "4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 			ParentID:       "19de02e105c68a60e45c289bff19fde745bca9c63c38f2095b59e8e8090ae1af",
 			Message:        "Post 2",
-			Created:        time.Date(2020, 2, 1, 1, 1, 0, 0, timeZone),
+			Created:        time.Date(2020, 2, 1, 1, 1, 0, 0, time.FixedZone("UTC", 0)),
 			AllowsComments: true,
 			Subspace:       "4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 			OptionalData:   nil,
@@ -418,7 +414,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetPostsFiltered() {
 			PostID:       "a33e173b6b96129f74acf41b5219a6bbc9f90e9e41f37115f1ce7f1f5860211c",
 			ParentID:     "84a5d9fc5f0acd2bb9c0a49ecaefabbe4698372e1ae88d32f9f6f80b3c0ab95e",
 			Message:      "Post 3",
-			Created:      time.Date(2020, 3, 1, 1, 1, 0, 0, timeZone),
+			Created:      time.Date(2020, 3, 1, 1, 1, 0, 0, time.FixedZone("UTC", 0)),
 			Subspace:     "4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 			OptionalData: nil,
 			Creator:      "cosmos1jlhazemxvu0zn9y77j6afwmpf60zveqw5480l2",
@@ -433,7 +429,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetPostsFiltered() {
 		{
 			name:     "Valid pagination works properly",
 			filter:   types.QueryPostsParams{Page: 1, Limit: 2},
-			expected: types.Posts{posts[0], posts[1]},
+			expected: types.Posts{posts[1], posts[2]},
 		},
 		{
 			name:     "Non existing page returns empty list",
@@ -442,8 +438,8 @@ func (suite *KeeperTestSuite) TestKeeper_GetPostsFiltered() {
 		},
 		{
 			name:     "Invalid pagination returns all data",
-			filter:   types.QueryPostsParams{Page: 1, Limit: 1},
-			expected: types.Posts{posts[0], posts[1], posts[2]},
+			filter:   types.QueryPostsParams{Page: 1, Limit: 0},
+			expected: types.Posts{posts[1], posts[2], posts[0]},
 		},
 		{
 			name:     "Parent ID matcher works properly",

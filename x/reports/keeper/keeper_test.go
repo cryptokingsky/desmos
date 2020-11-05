@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	posts "github.com/desmos-labs/desmos/x/posts/types"
+	"github.com/desmos-labs/desmos/x/reports/keeper"
 
 	"github.com/desmos-labs/desmos/x/reports/types"
 )
@@ -60,10 +61,11 @@ func (suite *KeeperTestSuite) TestKeeper_SaveReport() {
 	err := suite.keeper.SaveReport(suite.ctx, report)
 	suite.Require().NoError(err)
 
-	reports, err := suite.keeper.UnmarshalReports(store.Get(types.ReportStoreKey(suite.testData.postID)))
+	var wrapped keeper.WrappedReports
+	err = suite.cdc.UnmarshalBinaryBare(store.Get(types.ReportStoreKey(suite.testData.postID)), &wrapped)
 	suite.Require().NoError(err)
 
-	suite.Require().Equal(reports, []types.Report{report})
+	suite.Require().Equal(wrapped.Reports, []types.Report{report})
 }
 
 func (suite *KeeperTestSuite) TestKeeper_GetPostReports() {
@@ -92,7 +94,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetPostReports() {
 			postID: "post_id",
 			expected: []types.Report{
 				types.NewReport(
-					suite.testData.postID,
+					"post_id",
 					"type",
 					"message",
 					suite.testData.creator,

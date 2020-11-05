@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/desmos-labs/desmos/x/reports/keeper"
@@ -63,7 +62,7 @@ func (suite *KeeperTestSuite) Test_handleMsgReportPost() {
 			}
 
 			server := keeper.NewMsgServerImpl(suite.keeper)
-			_, err := server.ReportPost(context.Background(), test.msg)
+			_, err := server.ReportPost(sdk.WrapSDKContext(suite.ctx), test.msg)
 
 			if test.expErr == nil {
 				// Check the events

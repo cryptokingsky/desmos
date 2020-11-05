@@ -101,7 +101,7 @@ func randomDtagRequestTransferFields(
 	}
 
 	randomDTag := RandomDTag(r)
-	req := types.NewDTagTransferRequest(randomDTag, receiver.Address.String(), sender.Address.String())
+	req := types.NewDTagTransferRequest(randomDTag, sender.Address.String(), receiver.Address.String())
 	_ = k.StoreProfile(ctx, types.NewProfile(
 		randomDTag,
 		"",
@@ -204,8 +204,8 @@ func randomDtagAcceptRequestTransferFields(
 
 	req := types.NewDTagTransferRequest(
 		"dtag",
-		currentOwner.Address.String(),
 		receivingUser.Address.String(),
+		currentOwner.Address.String(),
 	)
 
 	// skip if requests doesnt exists
@@ -322,8 +322,8 @@ func randomRefuseDTagTransferFields(
 
 	req := types.NewDTagTransferRequest(
 		"dtag",
-		currentOwner.Address.String(),
 		receivingUser.Address.String(),
+		currentOwner.Address.String(),
 	)
 	err := k.SaveDTagTransferRequest(ctx, req)
 	if err != nil {
@@ -414,7 +414,7 @@ func randomCancelDTagTransferFields(
 		return simtypes.Account{}, sdk.AccAddress{}, true
 	}
 
-	req := types.NewDTagTransferRequest("dtag", receiver.Address.String(), sender.Address.String())
+	req := types.NewDTagTransferRequest("dtag", sender.Address.String(), receiver.Address.String())
 	err := k.SaveDTagTransferRequest(ctx, req)
 	if err != nil {
 		return simtypes.Account{}, sdk.AccAddress{}, true

@@ -16,7 +16,7 @@ func (suite *KeeperTestSuite) TestKeeper_SavePostReaction() {
 		postID          string
 		reaction        types.PostReaction
 		error           error
-		expectedStored  types.PostReactions
+		expectedStored  []types.PostReaction
 	}{
 		{
 			name: "Reaction from same user already present returns error",
@@ -42,10 +42,9 @@ func (suite *KeeperTestSuite) TestKeeper_SavePostReaction() {
 			},
 		},
 		{
-			name:            "First liker is stored properly",
-			storedReactions: types.PostReactions{},
-			postID:          "19de02e105c68a60e45c289bff19fde745bca9c63c38f2095b59e8e8090ae1af",
-			reaction:        types.NewPostReaction(":like:", "👍", "cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4"),
+			name:     "First liker is stored properly",
+			postID:   "19de02e105c68a60e45c289bff19fde745bca9c63c38f2095b59e8e8090ae1af",
+			reaction: types.NewPostReaction(":like:", "👍", "cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4"),
 			storedPost: types.Post{
 				PostID:         "19de02e105c68a60e45c289bff19fde745bca9c63c38f2095b59e8e8090ae1af",
 				ParentID:       suite.testData.post.ParentID,
@@ -58,7 +57,7 @@ func (suite *KeeperTestSuite) TestKeeper_SavePostReaction() {
 				Creator:        suite.testData.post.Creator,
 			},
 			error: nil,
-			expectedStored: types.PostReactions{
+			expectedStored: []types.PostReaction{
 				types.NewPostReaction(":like:", "👍", "cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4"),
 			},
 		},
@@ -81,7 +80,7 @@ func (suite *KeeperTestSuite) TestKeeper_SavePostReaction() {
 				Creator:        suite.testData.post.Creator,
 			},
 			error: nil,
-			expectedStored: types.PostReactions{
+			expectedStored: []types.PostReaction{
 				types.NewPostReaction(":like:", "👍", "cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4"),
 				types.NewPostReaction(":like:", "👍", "cosmos15lt0mflt6j9a9auj7yl3p20xec4xvljge0zhae"),
 			},

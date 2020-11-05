@@ -110,7 +110,7 @@ func (k msgServer) RequestDTagTransfer(goCtx context.Context, msg *types.MsgRequ
 		)
 	}
 
-	transferRequest := types.NewDTagTransferRequest(dtagToTrade, msg.Receiver, msg.Sender)
+	transferRequest := types.NewDTagTransferRequest(dtagToTrade, msg.Sender, msg.Receiver)
 	err := k.SaveDTagTransferRequest(ctx, transferRequest)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())

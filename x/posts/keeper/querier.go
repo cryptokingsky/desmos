@@ -68,12 +68,12 @@ func queryPost(
 ) ([]byte, error) {
 	id := path[0]
 	if !types.IsValidPostID(id) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid postID: %s", id)
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid postID: %s", id)
 	}
 
 	post, found := keeper.GetPost(ctx, id)
 	if !found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "post with id %s not found", id)
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "post with id %s not found", id)
 	}
 
 	postResponse := getPostResponse(ctx, keeper, post)

@@ -25,10 +25,10 @@ func (suite *KeeperTestSuite) Test_handleMsgCreatePost() {
 		expError    error
 	}{
 		{
-			name: "Trying to store post with same id returns expError",
+			name: "Trying to store post with same id returns error",
 			storedPosts: types.Posts{
 				types.Post{
-					PostID:         "040b0c16cd541101d24100e4a9c90e4dbaebbee977a94d673f79591cbb5f4465",
+					PostID:         "55a2742d35b947a8778024ba44ba019c9085fce7f6cc93ff345dcd1e8f8ef708",
 					ParentID:       suite.testData.post.ParentID,
 					Message:        suite.testData.post.Message,
 					Created:        suite.testData.post.Created,
@@ -36,6 +36,7 @@ func (suite *KeeperTestSuite) Test_handleMsgCreatePost() {
 					Subspace:       suite.testData.post.Subspace,
 					OptionalData:   suite.testData.post.OptionalData,
 					Creator:        suite.testData.post.Creator,
+					PollData:       suite.testData.post.PollData,
 				},
 			},
 			msg: types.NewMsgCreatePost(
@@ -48,8 +49,11 @@ func (suite *KeeperTestSuite) Test_handleMsgCreatePost() {
 				suite.testData.post.Attachments,
 				suite.testData.post.PollData,
 			),
-			expError: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest,
-				"the provided post conflicts with the one having id 040b0c16cd541101d24100e4a9c90e4dbaebbee977a94d673f79591cbb5f4465"),
+			expError: sdkerrors.Wrapf(
+				sdkerrors.ErrInvalidRequest,
+				"the provided post conflicts with the one having id %s",
+				"55a2742d35b947a8778024ba44ba019c9085fce7f6cc93ff345dcd1e8f8ef708",
+			),
 		},
 		{
 			name: "Post with new id is stored properly",
@@ -143,8 +147,11 @@ func (suite *KeeperTestSuite) Test_handleMsgCreatePost() {
 				suite.testData.post.Attachments,
 				suite.testData.post.PollData,
 			),
-			expError: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest,
-				"the provided post conflicts with the one having id 040b0c16cd541101d24100e4a9c90e4dbaebbee977a94d673f79591cbb5f4465"),
+			expError: sdkerrors.Wrapf(
+				sdkerrors.ErrInvalidRequest,
+				"the provided post conflicts with the one having id %s",
+				"55a2742d35b947a8778024ba44ba019c9085fce7f6cc93ff345dcd1e8f8ef708",
+			),
 		},
 		{
 			name: "Post message cannot be longer than 500 characters",
@@ -158,8 +165,11 @@ func (suite *KeeperTestSuite) Test_handleMsgCreatePost() {
 				suite.testData.post.Attachments,
 				suite.testData.post.PollData,
 			),
-			expError: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest,
-				"post with id 38caeb754684d0173f3e47e45831bd15a23056caa9b64b498a61b67739f6f8a0 has more than 500 characters"),
+			expError: sdkerrors.Wrapf(
+				sdkerrors.ErrInvalidRequest,
+				"post with id %s has more than 500 characters",
+				"1e2a508c05a4230955b98a5c1948e197a50305164f272ad28a9a4ea265e3cb53",
+			),
 		},
 		{
 			name: "post tag blocked the post creator",
@@ -227,8 +237,8 @@ func (suite *KeeperTestSuite) Test_handleMsgCreatePost() {
 					sdk.NewAttribute(types.AttributeKeyPostCreationTime, test.expPost.Created.Format(time.RFC3339)),
 					sdk.NewAttribute(types.AttributeKeyPostOwner, test.expPost.Creator),
 				)
-				suite.Len(suite.ctx.EventManager(), 1)
-				suite.Contains(suite.ctx.EventManager(), creationEvent)
+				suite.Len(suite.ctx.EventManager().Events(), 1)
+				suite.Contains(suite.ctx.EventManager().Events(), creationEvent)
 			}
 
 			// Invalid response

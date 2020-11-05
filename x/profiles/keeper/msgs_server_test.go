@@ -365,7 +365,7 @@ func (suite *KeeperTestSuite) Test_handleMsgAcceptDTagTransfer() {
 					"cosmos1lkqrqrns0ekttzrs678thh5f4prcgasthqcxph",
 				),
 			},
-			expErr: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "a profile with dtag: newDtag has already been created"),
+			expErr: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "a profile with dtag newDtag has already been created"),
 		},
 		{
 			name: "Current owner DTag different that the requested one",
@@ -442,6 +442,8 @@ func (suite *KeeperTestSuite) Test_handleMsgAcceptDTagTransfer() {
 	for _, test := range tests {
 		suite.SetupTest()
 		suite.Run(test.name, func() {
+			suite.keeper.SetParams(suite.ctx, types.DefaultParams())
+
 			for _, req := range test.storedDTagReqs {
 				err := suite.keeper.SaveDTagTransferRequest(suite.ctx, req)
 				suite.Require().NoError(err)
@@ -453,7 +455,7 @@ func (suite *KeeperTestSuite) Test_handleMsgAcceptDTagTransfer() {
 			}
 
 			server := keeper.NewMsgServerImpl(suite.keeper)
-			_, err := server.AcceptDTagTransfer(context.Background(), test.msg)
+			_, err := server.AcceptDTagTransfer(sdk.WrapSDKContext(suite.ctx), test.msg)
 
 			if err == nil {
 				// Check the events

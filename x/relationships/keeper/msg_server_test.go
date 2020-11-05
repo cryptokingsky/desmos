@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"context"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -72,22 +70,19 @@ func (suite *KeeperTestSuite) Test_handleMsgCreateRelationship() {
 	for _, test := range tests {
 		suite.SetupTest()
 		suite.Run(test.name, func() {
-			if test.storedRelationships != nil {
-				store := suite.ctx.KVStore(suite.storeKey)
-				bz, err := suite.keeper.MarshalRelationships(test.storedRelationships)
+			for _, rel := range test.storedRelationships {
+				err := suite.k.StoreRelationship(suite.ctx, rel)
 				suite.Require().NoError(err)
-
-				store.Set(types.RelationshipsStoreKey(test.msg.Sender), bz)
 			}
 
 			if test.isBlocked {
 				userBlock := types.NewUserBlock(test.msg.Receiver, test.msg.Sender, "test", "")
-				err := suite.keeper.SaveUserBlock(suite.ctx, userBlock)
+				err := suite.k.SaveUserBlock(suite.ctx, userBlock)
 				suite.Require().NoError(err)
 			}
 
-			handler := keeper.NewMsgServerImpl(suite.keeper)
-			_, err := handler.CreateRelationship(context.Background(), test.msg)
+			handler := keeper.NewMsgServerImpl(suite.k)
+			_, err := handler.CreateRelationship(sdk.WrapSDKContext(suite.ctx), test.msg)
 
 			if test.expErr == nil {
 				suite.Require().NoError(err)
@@ -96,7 +91,7 @@ func (suite *KeeperTestSuite) Test_handleMsgCreateRelationship() {
 				suite.Len(suite.ctx.EventManager().Events(), 1)
 				suite.Contains(suite.ctx.EventManager().Events(), test.expEvent)
 
-				userRelationships, err := suite.keeper.GetUserRelationships(suite.ctx, test.msg.Sender)
+				userRelationships, err := suite.k.GetUserRelationships(suite.ctx, test.msg.Sender)
 				suite.Require().NoError(err)
 				suite.Len(userRelationships, 1)
 			}
@@ -113,7 +108,7 @@ func (suite *KeeperTestSuite) Test_handleMsgDeleteRelationship() {
 	store := suite.ctx.KVStore(suite.storeKey)
 
 	// Store the initial relationships
-	bz, err := suite.keeper.MarshalRelationships([]types.Relationship{
+	bz, err := suite.cdc.MarshalBinaryBare(&keeper.WrappedRelationships{Relationships: []types.Relationship{
 		types.NewRelationship(
 			suite.testData.user,
 			"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
@@ -124,7 +119,7 @@ func (suite *KeeperTestSuite) Test_handleMsgDeleteRelationship() {
 			"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
 			"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 		),
-	})
+	}})
 	store.Set(types.RelationshipsStoreKey(suite.testData.user), bz)
 
 	// Delete the relationship
@@ -133,8 +128,8 @@ func (suite *KeeperTestSuite) Test_handleMsgDeleteRelationship() {
 		"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
 		"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 	)
-	service := keeper.NewMsgServerImpl(suite.keeper)
-	_, err = service.RemoveRelationship(context.Background(), msg)
+	service := keeper.NewMsgServerImpl(suite.k)
+	_, err = service.RemoveRelationship(sdk.WrapSDKContext(suite.ctx), msg)
 	suite.Require().NoError(err)
 
 	// Verify the remaining relationships
@@ -145,7 +140,7 @@ func (suite *KeeperTestSuite) Test_handleMsgDeleteRelationship() {
 			"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 		),
 	}
-	actual, err := suite.keeper.GetUserRelationships(suite.ctx, suite.testData.user)
+	actual, err := suite.k.GetUserRelationships(suite.ctx, suite.testData.user)
 	suite.Require().NoError(err)
 
 	suite.Require().Equal(expected, actual)
@@ -211,17 +206,13 @@ func (suite *KeeperTestSuite) Test_handleMsgBlockUser() {
 	for _, test := range tests {
 		suite.SetupTest()
 		suite.Run(test.name, func() {
-			if test.storedUserBlocks != nil {
-				store := suite.ctx.KVStore(suite.storeKey)
-
-				bz, err := suite.keeper.MarshalUserBlocks(test.storedUserBlocks)
+			for _, block := range test.storedUserBlocks {
+				err := suite.k.SaveUserBlock(suite.ctx, block)
 				suite.Require().NoError(err)
-
-				store.Set(types.UsersBlocksStoreKey(test.msg.Blocker), bz)
 			}
 
-			service := keeper.NewMsgServerImpl(suite.keeper)
-			_, err := service.BlockUser(context.Background(), test.msg)
+			service := keeper.NewMsgServerImpl(suite.k)
+			_, err := service.BlockUser(sdk.WrapSDKContext(suite.ctx), test.msg)
 
 			if test.expErr != nil {
 				suite.Error(err)
@@ -235,7 +226,7 @@ func (suite *KeeperTestSuite) Test_handleMsgBlockUser() {
 				suite.Len(suite.ctx.EventManager().Events(), 1)
 				suite.Contains(suite.ctx.EventManager().Events(), test.expEvent)
 
-				blocks, err := suite.keeper.GetUserBlocks(suite.ctx, test.msg.Blocker)
+				blocks, err := suite.k.GetUserBlocks(suite.ctx, test.msg.Blocker)
 				suite.Require().NoError(err)
 
 				suite.Len(blocks, 1)
@@ -248,7 +239,7 @@ func (suite *KeeperTestSuite) Test_handleMsgUnblockUser() {
 	store := suite.ctx.KVStore(suite.storeKey)
 
 	// Store the existing blocks
-	bz, err := suite.keeper.MarshalUserBlocks([]types.UserBlock{
+	bz, err := suite.cdc.MarshalBinaryBare(&keeper.WrappedUserBlocks{Blocks: []types.UserBlock{
 		types.NewUserBlock(
 			suite.testData.user,
 			"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
@@ -261,7 +252,7 @@ func (suite *KeeperTestSuite) Test_handleMsgUnblockUser() {
 			"reason",
 			"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 		),
-	})
+	}})
 	suite.Require().NoError(err)
 	store.Set(types.UsersBlocksStoreKey(suite.testData.user), bz)
 
@@ -272,8 +263,8 @@ func (suite *KeeperTestSuite) Test_handleMsgUnblockUser() {
 		"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 	)
 
-	service := keeper.NewMsgServerImpl(suite.keeper)
-	_, err = service.UnblockUser(context.Background(), msg)
+	service := keeper.NewMsgServerImpl(suite.k)
+	_, err = service.UnblockUser(sdk.WrapSDKContext(suite.ctx), msg)
 
 	suite.Require().NoError(err)
 
@@ -286,7 +277,7 @@ func (suite *KeeperTestSuite) Test_handleMsgUnblockUser() {
 		),
 	}
 
-	userBlocks, err := suite.keeper.GetUserBlocks(suite.ctx, suite.testData.user)
+	userBlocks, err := suite.k.GetUserBlocks(suite.ctx, suite.testData.user)
 	suite.Require().NoError(err)
 	suite.Require().Equal(expected, userBlocks)
 

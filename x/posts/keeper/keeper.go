@@ -144,17 +144,17 @@ func (k Keeper) GetPostsFiltered(ctx sdk.Context, params types.QueryPostsParams)
 		}
 
 		// match subspace if provided
-		if len(params.Subspace) > 0 {
+		if params.Subspace != "" {
 			matchSubspace = params.Subspace == post.Subspace
 		}
 
 		// match creator address (if supplied)
-		if len(params.Creator) > 0 {
+		if params.Creator != "" {
 			matchCreator = params.Creator == post.Creator
 		}
 
 		// match hashtags if provided
-		if len(params.Hashtags) > 0 {
+		if params.Hashtags != nil {
 			postHashtags := post.GetPostHashtags()
 			matchHashtags = len(postHashtags) == len(params.Hashtags)
 			sort.Strings(postHashtags)

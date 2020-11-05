@@ -59,7 +59,7 @@ func (suite *KeeperTestSuite) TestKeeper_AssociateDtagWithAddress() {
 
 	suite.keeper.AssociateDtagWithAddress(suite.ctx, "dtag", suite.testData.profile.Creator)
 
-	var owner keeper.DTagOwner
+	var owner keeper.WrappedDTagOwner
 	suite.cdc.MustUnmarshalBinaryBare(store.Get(types.DtagStoreKey("dtag")), &owner)
 
 	suite.Require().Equal(suite.testData.profile.Creator, owner.Address)
@@ -114,7 +114,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteDtagAddressAssociation() {
 	suite.keeper.DeleteDtagAddressAssociation(suite.ctx, "monik")
 
 	addr := suite.keeper.GetDtagRelatedAddress(suite.ctx, "monik")
-	suite.Require().Nil(addr)
+	suite.Require().Equal(addr, "")
 }
 
 func (suite *KeeperTestSuite) TestKeeper_StoreProfile() {
@@ -139,7 +139,7 @@ func (suite *KeeperTestSuite) TestKeeper_StoreProfile() {
 				Creator:  "cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 			},
 			existentAccounts: []types.Profile{suite.testData.profile},
-			expError:         fmt.Errorf("a profile with dtag: dtag has already been created"),
+			expError:         fmt.Errorf("a profile with dtag dtag has already been created"),
 		},
 	}
 
@@ -218,37 +218,32 @@ func (suite *KeeperTestSuite) TestKeeper_RemoveProfile() {
 
 func (suite *KeeperTestSuite) TestKeeper_GetProfiles() {
 	tests := []struct {
-		name             string
-		existentAccounts []types.Profile
+		name     string
+		accounts []types.Profile
 	}{
 		{
-			name:             "Non empty Profiles list returned",
-			existentAccounts: []types.Profile{suite.testData.profile},
+			name:     "Non empty Profiles list returned",
+			accounts: []types.Profile{suite.testData.profile},
 		},
 		{
-			name:             "Profile not found",
-			existentAccounts: []types.Profile{},
+			name:     "Profile not found",
+			accounts: nil,
 		},
 	}
 
 	for _, test := range tests {
 		test := test
 		suite.Run(test.name, func() {
-			suite.SetupTest() // reset
-			if len(test.existentAccounts) != 0 {
+			suite.SetupTest()
+
+			if len(test.accounts) != 0 {
 				store := suite.ctx.KVStore(suite.storeKey)
-				key := types.ProfileStoreKey(test.existentAccounts[0].Creator)
-				store.Set(key, suite.cdc.MustMarshalBinaryBare(&test.existentAccounts[0]))
+				key := types.ProfileStoreKey(test.accounts[0].Creator)
+				store.Set(key, suite.cdc.MustMarshalBinaryBare(&test.accounts[0]))
 			}
 
 			res := suite.keeper.GetProfiles(suite.ctx)
-
-			if len(test.existentAccounts) != 0 {
-				suite.Require().Equal(test.existentAccounts, res)
-			} else {
-				suite.Require().Equal([]types.Profile{}, res)
-			}
-
+			suite.Require().Equal(test.accounts, res)
 		})
 	}
 }
@@ -471,7 +466,7 @@ func (suite *KeeperTestSuite) TestKeeper_SaveDTagTransferRequest() {
 		suite.Run(test.name, func() {
 			store := suite.ctx.KVStore(suite.storeKey)
 			if test.storedTransferReqs != nil {
-				reqs := keeper.NewDTagRequests(test.storedTransferReqs)
+				reqs := keeper.NewWrappedDTagTransferRequests(test.storedTransferReqs)
 				store.Set(
 					types.DtagTransferRequestStoreKey(test.storedTransferReqs[0].Receiver),
 					suite.cdc.MustMarshalBinaryBare(&reqs),
@@ -481,7 +476,7 @@ func (suite *KeeperTestSuite) TestKeeper_SaveDTagTransferRequest() {
 			actualErr := suite.keeper.SaveDTagTransferRequest(suite.ctx, test.transferReq)
 			suite.Require().Equal(test.expErr, actualErr)
 
-			var actualReqs keeper.DTagRequests
+			var actualReqs keeper.WrappedDTagTransferRequests
 			suite.cdc.MustUnmarshalBinaryBare(
 				store.Get(types.DtagTransferRequestStoreKey(test.transferReq.Receiver)),
 				&actualReqs,
@@ -518,7 +513,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetUserDTagTransferRequests() {
 		suite.Run(test.name, func() {
 			store := suite.ctx.KVStore(suite.storeKey)
 			if test.storedReqs != nil {
-				reqs := keeper.NewDTagRequests(test.storedReqs)
+				reqs := keeper.NewWrappedDTagTransferRequests(test.storedReqs)
 				store.Set(
 					types.DtagTransferRequestStoreKey(suite.testData.user),
 					suite.cdc.MustMarshalBinaryBare(&reqs),
@@ -559,7 +554,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetDTagTransferRequests() {
 		suite.Run(test.name, func() {
 			store := suite.ctx.KVStore(suite.storeKey)
 			if test.storedReqs != nil {
-				reqs := keeper.NewDTagRequests(test.storedReqs)
+				reqs := keeper.NewWrappedDTagTransferRequests(test.storedReqs)
 				store.Set(
 					types.DtagTransferRequestStoreKey(suite.testData.user),
 					suite.cdc.MustMarshalBinaryBare(&reqs),
@@ -592,7 +587,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteAllDTagTransferRequests() {
 		suite.Run(test.name, func() {
 			store := suite.ctx.KVStore(suite.storeKey)
 			if test.storedReqs != nil {
-				reqs := keeper.NewDTagRequests(test.storedReqs)
+				reqs := keeper.NewWrappedDTagTransferRequests(test.storedReqs)
 				store.Set(
 					types.DtagTransferRequestStoreKey(suite.testData.user),
 					suite.cdc.MustMarshalBinaryBare(&reqs),
@@ -607,57 +602,58 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteAllDTagTransferRequests() {
 
 func (suite *KeeperTestSuite) TestKeeper_DeleteDTagTransferRequest() {
 	tests := []struct {
-		name       string
-		storedReqs []types.DTagTransferRequest
-		sender     string
-		expReqs    []types.DTagTransferRequest
+		name            string
+		storedReqs      []types.DTagTransferRequest
+		sender          string
+		storedReqsAfter []types.DTagTransferRequest
 	}{
 		{
-			name:       "empty requests array returns error",
+			name:       "Empty requests array returns error",
 			storedReqs: nil,
 		},
 		{
-			name: "no request made by the sender returns error",
+			name: "Deleting non existent request doesn't change the store",
 			storedReqs: []types.DTagTransferRequest{
 				types.NewDTagTransferRequest("dtag", suite.testData.user, suite.testData.user),
 			},
-			sender:  suite.testData.otherUser,
-			expReqs: nil,
+			sender: suite.testData.otherUser,
+			storedReqsAfter: []types.DTagTransferRequest{
+				types.NewDTagTransferRequest("dtag", suite.testData.user, suite.testData.user),
+			},
 		},
 		{
-			name: "request removed properly (remaining requests array)",
+			name: "Existing request gets removed properly and leaves an array",
 			storedReqs: []types.DTagTransferRequest{
 				types.NewDTagTransferRequest("dtag", suite.testData.user, suite.testData.otherUser),
 				types.NewDTagTransferRequest("dtag", suite.testData.user, suite.testData.user),
 			},
 			sender: suite.testData.otherUser,
-			expReqs: []types.DTagTransferRequest{
+			storedReqsAfter: []types.DTagTransferRequest{
 				types.NewDTagTransferRequest("dtag", suite.testData.user, suite.testData.user),
 			},
 		},
 		{
-			name: "request removed properly (no remaining requests)",
+			name: "Existing requests gets removed properly and doesn't leave anything",
 			storedReqs: []types.DTagTransferRequest{
 				types.NewDTagTransferRequest("dtag", suite.testData.user, suite.testData.otherUser),
 			},
-			sender:  suite.testData.otherUser,
-			expReqs: nil,
+			sender:          suite.testData.otherUser,
+			storedReqsAfter: nil,
 		},
 	}
 
 	for _, test := range tests {
 		suite.SetupTest()
 		suite.Run(test.name, func() {
-			store := suite.ctx.KVStore(suite.storeKey)
-			if test.storedReqs != nil {
-				reqs := keeper.NewDTagRequests(test.storedReqs)
-				store.Set(types.DtagTransferRequestStoreKey(suite.testData.user),
-					suite.cdc.MustMarshalBinaryBare(&reqs),
-				)
+			for _, req := range test.storedReqs {
+				err := suite.keeper.SaveDTagTransferRequest(suite.ctx, req)
+				suite.Require().NoError(err)
 			}
 
 			suite.keeper.DeleteDTagTransferRequest(suite.ctx, suite.testData.user, suite.testData.otherUser)
-			suite.Require().Equal(test.expReqs, suite.keeper.GetDTagTransferRequests(suite.ctx))
+
+			reqs := suite.keeper.GetDTagTransferRequests(suite.ctx)
+			suite.Require().Equal(test.storedReqsAfter, reqs)
 		})
 	}
 }
