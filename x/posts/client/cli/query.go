@@ -53,6 +53,9 @@ func GetCmdQueryPost() *cobra.Command {
 				context.Background(),
 				&types.QueryPostRequest{PostId: args[0]},
 			)
+			if err != nil {
+				return err
+			}
 
 			return clientCtx.PrintOutput(res)
 		},

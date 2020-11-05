@@ -19,7 +19,7 @@ func DefaultGenesisState() *GenesisState {
 
 // ValidateGenesis validates the given genesis state and returns an error if something is invalid
 func ValidateGenesis(state *GenesisState) error {
-	if state.DefaultSessionLength <= 0 {
+	if state.DefaultSessionLength == 0 {
 		return fmt.Errorf("invalid default session length: %d", state.DefaultSessionLength)
 	}
 

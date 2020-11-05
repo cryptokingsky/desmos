@@ -1,6 +1,6 @@
 package simulation
 
-// DONTCOVER
+//DONTCOVER
 
 import (
 	"math/rand"
@@ -44,6 +44,7 @@ var (
 )
 
 // NewRandomProfile return a random ProfileData from random data and the given account
+// nolint:interfacer
 func NewRandomProfile(r *rand.Rand, account sdk.AccAddress) types.Profile {
 	return types.NewProfile(
 		RandomDTag(r),

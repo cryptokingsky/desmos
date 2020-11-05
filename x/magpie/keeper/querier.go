@@ -41,7 +41,7 @@ func querySession(ctx sdk.Context, path []string, _ abci.RequestQuery, keeper Ke
 
 	session, found := keeper.GetSession(ctx, id)
 	if !found {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("session with id %s not found", id))
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "session with id %d not found", id)
 	}
 
 	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, &session)

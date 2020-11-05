@@ -227,13 +227,13 @@ func (attachments Attachments) Equal(other Attachments) bool {
 
 // AppendIfMissing appends the given otherAttachment to the atts slice if it does not exist inside it yet.
 // It returns a new slice of Attachments containing such otherAttachment.
-func (atts Attachments) AppendIfMissing(otherAttachment Attachment) Attachments {
-	for _, att := range atts {
+func (attachments Attachments) AppendIfMissing(otherAttachment Attachment) Attachments {
+	for _, att := range attachments {
 		if att.Equal(otherAttachment) {
-			return atts
+			return attachments
 		}
 	}
-	return append(atts, otherAttachment)
+	return append(attachments, otherAttachment)
 }
 
 // ___________________________________________________________________________________________________________________

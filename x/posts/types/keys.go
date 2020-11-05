@@ -1,7 +1,5 @@
 package types
 
-// nolint
-
 import (
 	"regexp"
 

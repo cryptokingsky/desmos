@@ -88,8 +88,6 @@ func deleteProfileHandler(clientCtx client.Context) http.HandlerFunc {
 		}
 
 		msg := types.NewMsgDeleteProfile(addr.String())
-
-		err = msg.ValidateBasic()
 		if rest.CheckBadRequestError(w, msg.ValidateBasic()) {
 			return
 		}

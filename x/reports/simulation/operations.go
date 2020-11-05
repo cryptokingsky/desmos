@@ -24,7 +24,7 @@ const (
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
-	appParams simtypes.AppParams, cdc codec.Marshaler,
+	appParams simtypes.AppParams, cdc codec.JSONMarshaler,
 	pk posts.Keeper, ak authkeeper.AccountKeeper, bk bankkeeper.Keeper,
 ) sim.WeightedOperations {
 	var weightMsgReportPost int
