@@ -2,8 +2,9 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/desmos-labs/desmos/x/relationships/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/desmos-labs/desmos/x/relationships/types"
 )
 
 // ExportGenesis returns the GenesisState associated with the given context

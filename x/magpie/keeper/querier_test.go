@@ -3,9 +3,10 @@ package keeper_test
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/desmos-labs/desmos/x/magpie/keeper"
 	"github.com/desmos-labs/desmos/x/magpie/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 var request abci.RequestQuery

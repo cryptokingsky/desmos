@@ -11,9 +11,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto"
+
 	"github.com/desmos-labs/desmos/x/relationships/keeper"
 	"github.com/desmos-labs/desmos/x/relationships/types"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 //DONTCOVER

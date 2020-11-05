@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
+
 	"github.com/desmos-labs/desmos/x/relationships/types"
 )
 

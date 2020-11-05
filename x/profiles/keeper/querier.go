@@ -8,8 +8,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/desmos-labs/desmos/x/profiles/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/desmos-labs/desmos/x/profiles/types"
 )
 
 // NewQuerier is the module level router for state queries

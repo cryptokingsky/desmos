@@ -7,6 +7,7 @@ import (
 	"github.com/desmos-labs/desmos/x/reports/keeper"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
+
 	"github.com/desmos-labs/desmos/x/reports/types"
 )
 
