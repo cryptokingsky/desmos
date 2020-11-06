@@ -184,7 +184,7 @@ func (msg MsgCancelDTagTransfer) GetSigners() []sdk.AccAddress {
 // ___________________________________________________________________________________________________________________
 
 // NewMsgAcceptDTagTransfer is a constructor for MsgAcceptDTagTransfer
-func NewMsgAcceptDTagTransfer(newDTag string, receiver, sender string) *MsgAcceptDTagTransfer {
+func NewMsgAcceptDTagTransfer(newDTag string, sender, receiver string) *MsgAcceptDTagTransfer {
 	return &MsgAcceptDTagTransfer{
 		NewDtag:  newDTag,
 		Sender:   sender,
@@ -200,17 +200,17 @@ func (msg MsgAcceptDTagTransfer) Type() string { return ActionAcceptDtagTransfer
 
 func (msg MsgAcceptDTagTransfer) ValidateBasic() error {
 	if strings.TrimSpace(msg.NewDtag) == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "new dTag can't be empty")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "new DTag can't be empty")
 	}
 
-	_, err := sdk.AccAddressFromBech32(msg.Receiver)
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("invalid current owner address: %s", msg.Receiver))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address: %s", msg.Sender)
 	}
 
-	_, err = sdk.AccAddressFromBech32(msg.Sender)
+	_, err = sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("invalid receiving user address: %s", msg.Sender))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address: %s", msg.Receiver)
 	}
 
 	if msg.Sender == msg.Receiver {

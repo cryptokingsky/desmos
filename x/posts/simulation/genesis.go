@@ -84,7 +84,7 @@ func randomPostReactionsEntries(r *rand.Rand, posts types.Posts, reactionsData [
 		}
 
 		id := RandomPostIDFromPosts(r, posts)
-		entries = append(entries, types.NewPostReactionsEntry(id, reactions))
+		entries[i] = types.NewPostReactionsEntry(id, reactions)
 	}
 
 	return entries

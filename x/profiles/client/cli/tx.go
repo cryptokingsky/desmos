@@ -141,7 +141,7 @@ func GetCmdAcceptDTagTransfer() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgAcceptDTagTransfer(args[0], clientCtx.FromAddress.String(), receivingUser.String())
+			msg := types.NewMsgAcceptDTagTransfer(args[0], receivingUser.String(), clientCtx.FromAddress.String())
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}

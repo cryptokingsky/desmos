@@ -145,7 +145,7 @@ func acceptTransferRequestHandler(clientCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgAcceptDTagTransfer(req.NewDTag, clientCtx.FromAddress.String(), receivingUser.String())
+		msg := types.NewMsgAcceptDTagTransfer(req.NewDTag, receivingUser.String(), clientCtx.FromAddress.String())
 		if rest.CheckBadRequestError(w, msg.ValidateBasic()) {
 			return
 		}

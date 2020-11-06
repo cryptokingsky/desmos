@@ -335,14 +335,14 @@ func (suite *KeeperTestSuite) Test_handleMsgAcceptDTagTransfer() {
 			name:      "No request made from the receiving user returns error",
 			msg:       types.NewMsgAcceptDTagTransfer("newDtag", suite.testData.user, suite.testData.otherUser),
 			expEvents: sdk.EmptyEvents(),
-			expErr:    sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "no request made from %s", suite.testData.otherUser),
+			expErr:    sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "no request made from %s", suite.testData.user),
 		},
 		{
 			name: "Return an error if the request receiver does not have a profile",
 			storedDTagReqs: []types.DTagTransferRequest{
 				types.NewDTagTransferRequest("dtag", suite.testData.user, suite.testData.otherUser),
 			},
-			msg:       types.NewMsgAcceptDTagTransfer("newDtag", suite.testData.otherUser, suite.testData.user),
+			msg:       types.NewMsgAcceptDTagTransfer("newDtag", suite.testData.user, suite.testData.otherUser),
 			expEvents: sdk.EmptyEvents(),
 			expErr: sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
 				"profile of %s doesn't exist", suite.testData.otherUser),
@@ -370,7 +370,7 @@ func (suite *KeeperTestSuite) Test_handleMsgAcceptDTagTransfer() {
 			storedDTagReqs: []types.DTagTransferRequest{
 				types.NewDTagTransferRequest("dtag", suite.testData.user, suite.testData.otherUser),
 			},
-			msg:       types.NewMsgAcceptDTagTransfer("newDtag", suite.testData.otherUser, suite.testData.user),
+			msg:       types.NewMsgAcceptDTagTransfer("newDtag", suite.testData.user, suite.testData.otherUser),
 			expEvents: sdk.EmptyEvents(),
 			expErr:    sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "a profile with dtag newDtag has already been created"),
 		},
@@ -389,7 +389,7 @@ func (suite *KeeperTestSuite) Test_handleMsgAcceptDTagTransfer() {
 			storedDTagReqs: []types.DTagTransferRequest{
 				types.NewDTagTransferRequest("dtag", suite.testData.user, suite.testData.otherUser),
 			},
-			msg:       types.NewMsgAcceptDTagTransfer("newDtag", suite.testData.otherUser, suite.testData.user),
+			msg:       types.NewMsgAcceptDTagTransfer("newDtag", suite.testData.user, suite.testData.otherUser),
 			expEvents: sdk.EmptyEvents(),
 			expErr: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest,
 				"the owner's DTag is different from the one to be exchanged"),
@@ -409,7 +409,7 @@ func (suite *KeeperTestSuite) Test_handleMsgAcceptDTagTransfer() {
 			storedDTagReqs: []types.DTagTransferRequest{
 				types.NewDTagTransferRequest("dtag", suite.testData.user, suite.testData.otherUser),
 			},
-			msg: types.NewMsgAcceptDTagTransfer("newDtag", suite.testData.otherUser, suite.testData.user),
+			msg: types.NewMsgAcceptDTagTransfer("newDtag", suite.testData.user, suite.testData.otherUser),
 			expEvents: sdk.Events{
 				sdk.NewEvent(
 					types.EventTypeDTagTransferAccept,
@@ -443,7 +443,7 @@ func (suite *KeeperTestSuite) Test_handleMsgAcceptDTagTransfer() {
 			storedDTagReqs: []types.DTagTransferRequest{
 				types.NewDTagTransferRequest("previous", suite.testData.user, suite.testData.otherUser),
 			},
-			msg: types.NewMsgAcceptDTagTransfer("newDtag", suite.testData.otherUser, suite.testData.user),
+			msg: types.NewMsgAcceptDTagTransfer("newDtag", suite.testData.user, suite.testData.otherUser),
 			expEvents: sdk.Events{
 				sdk.NewEvent(
 					types.EventTypeDTagTransferAccept,

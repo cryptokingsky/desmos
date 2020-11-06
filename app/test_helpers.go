@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/simapp"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -33,7 +35,10 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 // SetupSimApp initializes a new DesmosApp. A Nop logger is set in DesmosApp.
 func SetupSimApp(isCheckTx bool) *DesmosApp {
 	db := dbm.NewMemDB()
-	app := NewDesmosApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, MakeEncodingConfig())
+	app := NewDesmosApp(
+		log.NewNopLogger(), db, nil, true, map[int64]bool{},
+		DefaultNodeHome, 5, MakeTestEncodingConfig(), simapp.EmptyAppOptions{},
+	)
 	if !isCheckTx {
 		// init chain must be called to stop deliverState from being nil
 		genesisState := NewDefaultGenesisState()

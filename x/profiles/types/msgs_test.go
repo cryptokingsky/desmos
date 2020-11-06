@@ -246,8 +246,8 @@ func TestMsgRequestDTagTransfer_GetSigners(t *testing.T) {
 
 var msgAcceptDTagTransfer = types.NewMsgAcceptDTagTransfer(
 	"dtag",
-	"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 	"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
+	"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 )
 
 func TestMsgAcceptDTagTransfer_Route(t *testing.T) {
@@ -267,18 +267,22 @@ func TestMsgAcceptDTagTransfer_ValidateBasic(t *testing.T) {
 		error error
 	}{
 		{
-			name:  "Empty current owner returns error",
-			msg:   types.NewMsgAcceptDTagTransfer("dtag", "", ""),
-			error: sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid current owner address: "),
+			name: "Empty sender user returns error",
+			msg: types.NewMsgAcceptDTagTransfer(
+				"dtag",
+				"",
+				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
+			),
+			error: sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address: "),
 		},
 		{
-			name: "Empty receiving user returns error",
+			name: "Empty receiver user returns error",
 			msg: types.NewMsgAcceptDTagTransfer(
 				"dtag",
 				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 				"",
 			),
-			error: sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid receiving user address: "),
+			error: sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid receiver address: "),
 		},
 		{
 			name: "Equals current owner and receiving user returns error",
@@ -293,17 +297,17 @@ func TestMsgAcceptDTagTransfer_ValidateBasic(t *testing.T) {
 			name: "Empty newDTag returns error",
 			msg: types.NewMsgAcceptDTagTransfer(
 				"",
-				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 				"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
+				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 			),
-			error: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "new dTag can't be empty"),
+			error: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "new DTag can't be empty"),
 		},
 		{
 			name: "No errors message",
 			msg: types.NewMsgAcceptDTagTransfer(
 				"dtag",
-				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 				"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
+				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 			),
 			error: nil,
 		},

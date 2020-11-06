@@ -98,7 +98,7 @@ func TestFullAppSimulation(t *testing.T) {
 
 	app := NewDesmosApp(
 		logger, db, nil, true, map[int64]bool{},
-		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), fauxMerkleModeOpt,
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeTestEncodingConfig(), simapp.EmptyAppOptions{}, fauxMerkleModeOpt,
 	)
 	require.Equal(t, appName, app.Name())
 
@@ -112,6 +112,7 @@ func TestFullAppSimulation(t *testing.T) {
 		simapp.SimulationOperations(app, app.AppCodec(), config),
 		app.ModuleAccountAddrs(),
 		config,
+		app.AppCodec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -138,7 +139,7 @@ func TestAppImportExport(t *testing.T) {
 
 	app := NewDesmosApp(
 		logger, db, nil, true, map[int64]bool{}, DefaultNodeHome,
-		simapp.FlagPeriodValue, MakeEncodingConfig(), fauxMerkleModeOpt,
+		simapp.FlagPeriodValue, MakeTestEncodingConfig(), simapp.EmptyAppOptions{}, fauxMerkleModeOpt,
 	)
 	require.Equal(t, appName, app.Name())
 
@@ -150,7 +151,9 @@ func TestAppImportExport(t *testing.T) {
 		simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
 		simtypes.RandomAccounts,
 		simapp.SimulationOperations(app, app.AppCodec(), config),
-		app.ModuleAccountAddrs(), config,
+		app.ModuleAccountAddrs(),
+		config,
+		app.AppCodec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -179,7 +182,7 @@ func TestAppImportExport(t *testing.T) {
 
 	newApp := NewDesmosApp(
 		log.NewNopLogger(), newDB, nil, true, map[int64]bool{},
-		DefaultNodeHome, simapp.FlagPeriodValue, MakeEncodingConfig(), fauxMerkleModeOpt,
+		DefaultNodeHome, simapp.FlagPeriodValue, MakeTestEncodingConfig(), simapp.EmptyAppOptions{}, fauxMerkleModeOpt,
 	)
 	require.Equal(t, appName, newApp.Name())
 
@@ -241,7 +244,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 
 	app := NewDesmosApp(
 		logger, db, nil, true, map[int64]bool{}, DefaultNodeHome,
-		simapp.FlagPeriodValue, MakeEncodingConfig(), fauxMerkleModeOpt,
+		simapp.FlagPeriodValue, MakeTestEncodingConfig(), simapp.EmptyAppOptions{}, fauxMerkleModeOpt,
 	)
 	require.Equal(t, appName, app.Name())
 
@@ -255,6 +258,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		simapp.SimulationOperations(app, app.AppCodec(), config),
 		app.ModuleAccountAddrs(),
 		config,
+		app.AppCodec(),
 	)
 
 	// export state and simParams before the simulation error is checked
@@ -288,7 +292,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 
 	newApp := NewDesmosApp(
 		log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, DefaultNodeHome,
-		simapp.FlagPeriodValue, MakeEncodingConfig(), fauxMerkleModeOpt,
+		simapp.FlagPeriodValue, MakeTestEncodingConfig(), simapp.EmptyAppOptions{}, fauxMerkleModeOpt,
 	)
 	require.Equal(t, appName, newApp.Name())
 
@@ -303,7 +307,9 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
 		simtypes.RandomAccounts,
 		simapp.SimulationOperations(newApp, newApp.AppCodec(), config),
-		newApp.ModuleAccountAddrs(), config,
+		newApp.ModuleAccountAddrs(),
+		config,
+		newApp.AppCodec(),
 	)
 	require.NoError(t, err)
 }
@@ -339,7 +345,7 @@ func TestAppStateDeterminism(t *testing.T) {
 
 			app := NewDesmosApp(
 				logger, db, nil, true, map[int64]bool{}, DefaultNodeHome,
-				simapp.FlagPeriodValue, MakeEncodingConfig(), interBlockCacheOpt(),
+				simapp.FlagPeriodValue, MakeTestEncodingConfig(), simapp.EmptyAppOptions{}, interBlockCacheOpt(),
 			)
 
 			fmt.Printf(
@@ -354,7 +360,9 @@ func TestAppStateDeterminism(t *testing.T) {
 				simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
 				simtypes.RandomAccounts,
 				simapp.SimulationOperations(app, app.AppCodec(), config),
-				app.ModuleAccountAddrs(), config,
+				app.ModuleAccountAddrs(),
+				config,
+				app.AppCodec(),
 			)
 			require.NoError(t, err)
 

@@ -6,6 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	"github.com/spf13/cast"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -53,7 +57,7 @@ import (
 	magpieTypes "github.com/desmos-labs/desmos/x/magpie/types"
 	"github.com/desmos-labs/desmos/x/posts"
 	postsKeeper "github.com/desmos-labs/desmos/x/posts/keeper"
-	postsTypes "github.com/desmos-labs/desmos/x/posts/types"
+	postsyypes "github.com/desmos-labs/desmos/x/posts/types"
 	"github.com/desmos-labs/desmos/x/profiles"
 	profileskeeper "github.com/desmos-labs/desmos/x/profiles/keeper"
 	profilestypes "github.com/desmos-labs/desmos/x/profiles/types"
@@ -104,6 +108,7 @@ var (
 	ModuleBasics = module.NewBasicManager(
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
+		vesting.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		distr.AppModuleBasic{},
@@ -197,7 +202,7 @@ func init() {
 func NewDesmosApp(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool,
 	homePath string, invCheckPeriod uint, encodingConfig simappparams.EncodingConfig,
-	baseAppOptions ...func(*baseapp.BaseApp),
+	appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp),
 ) *DesmosApp {
 
 	// TODO: Remove cdc in favor of appCodec once all modules are migrated.
@@ -209,8 +214,7 @@ func NewDesmosApp(
 	bApp := baseapp.NewBaseApp(appName, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
-	bApp.GRPCQueryRouter().SetInterfaceRegistry(interfaceRegistry)
-	bApp.GRPCQueryRouter().RegisterSimulateService(bApp.Simulate, interfaceRegistry)
+	bApp.SetInterfaceRegistry(interfaceRegistry)
 
 	keys := sdk.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
@@ -219,7 +223,7 @@ func NewDesmosApp(
 		evidencetypes.StoreKey,
 
 		// Custom modules
-		magpieTypes.StoreKey, postsTypes.StoreKey, profilestypes.StoreKey, reportsTypes.StoreKey,
+		magpieTypes.StoreKey, postsyypes.StoreKey, profilestypes.StoreKey, reportsTypes.StoreKey,
 		relationshipstypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -290,10 +294,14 @@ func NewDesmosApp(
 		appCodec,
 		keys[magpieTypes.StoreKey],
 	)
+	app.RelationshipsKeeper = relationshipskeeper.NewKeeper(
+		appCodec,
+		keys[relationshipstypes.StoreKey],
+	)
 	app.postsKeeper = postsKeeper.NewKeeper(
 		app.appCodec,
-		keys[postsTypes.StoreKey],
-		app.GetSubspace(postsTypes.ModuleName),
+		keys[postsyypes.StoreKey],
+		app.GetSubspace(postsyypes.ModuleName),
 		app.RelationshipsKeeper,
 	)
 	app.ProfileKeeper = profileskeeper.NewKeeper(
@@ -307,10 +315,12 @@ func NewDesmosApp(
 		keys[reportsTypes.StoreKey],
 		app.postsKeeper,
 	)
-	app.RelationshipsKeeper = relationshipskeeper.NewKeeper(
-		appCodec,
-		keys[relationshipstypes.StoreKey],
-	)
+
+	/****  Module Options ****/
+
+	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
+	// we prefer to be more strict in what arguments the modules expect.
+	var skipGenesisInvariants = cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
 	// Create the module manager
 	// NOTE: Any module instantiated in the module manager that is later modified
@@ -321,8 +331,9 @@ func NewDesmosApp(
 			encodingConfig.TxConfig,
 		),
 		auth.NewAppModule(appCodec, app.accountKeeper, authsims.RandomGenesisAccounts),
+		vesting.NewAppModule(app.accountKeeper, app.bankKeeper),
 		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
-		crisis.NewAppModule(&app.crisisKeeper),
+		crisis.NewAppModule(&app.crisisKeeper, skipGenesisInvariants),
 		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
@@ -354,7 +365,7 @@ func NewDesmosApp(
 		stakingtypes.ModuleName, banktypes.ModuleName, slashingtypes.ModuleName,
 		govtypes.ModuleName, evidencetypes.ModuleName,
 
-		magpieTypes.ModuleName, postsTypes.ModuleName, profilestypes.ModuleName, reportsTypes.ModuleName,
+		magpieTypes.ModuleName, postsyypes.ModuleName, profilestypes.ModuleName, reportsTypes.ModuleName,
 		relationshipstypes.ModuleName, // custom modules
 
 		crisistypes.ModuleName,  // runs the invariants at genesis - should run after other modules
@@ -432,7 +443,7 @@ func SetupConfig(config *sdk.Config) {
 // simapp. It is useful for tests and clients who do not want to construct the
 // full simapp
 func MakeCodecs() (codec.Marshaler, *codec.LegacyAmino) {
-	cfg := MakeEncodingConfig()
+	cfg := MakeTestEncodingConfig()
 	return cfg.Marshaler, cfg.Amino
 }
 
@@ -550,7 +561,7 @@ func (app *DesmosApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.API
 	authrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
 
 	ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
-	ModuleBasics.RegisterGRPCRoutes(apiSvr.ClientCtx, apiSvr.GRPCRouter)
+	ModuleBasics.RegisterGRPCGatewayRoutes(apiSvr.ClientCtx, apiSvr.GRPCRouter)
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
@@ -588,6 +599,10 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	paramsKeeper.Subspace(distrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
+	paramsKeeper.Subspace(crisistypes.ModuleName)
+
+	paramsKeeper.Subspace(postsyypes.ModuleName)
+	paramsKeeper.Subspace(profilestypes.ModuleName)
 
 	return paramsKeeper
 }
