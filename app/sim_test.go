@@ -43,9 +43,6 @@ func init() {
 	sdkConfig := sdk.GetConfig()
 	SetupConfig(sdkConfig)
 	sdkConfig.Seal()
-
-	// SetupSimApp the overloads
-	Init()
 }
 
 type StoreKeysPrefixes struct {
@@ -167,7 +164,7 @@ func TestAppImportExport(t *testing.T) {
 
 	fmt.Printf("exporting genesis...\n")
 
-	appState, _, err := app.ExportAppStateAndValidators(false, []string{})
+	exported, err := app.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err)
 
 	fmt.Printf("importing genesis...\n")
@@ -187,7 +184,7 @@ func TestAppImportExport(t *testing.T) {
 	require.Equal(t, appName, newApp.Name())
 
 	var genesisState GenesisState
-	err = json.Unmarshal(appState, &genesisState)
+	err = json.Unmarshal(exported.AppState, &genesisState)
 	require.NoError(t, err)
 
 	ctxA := app.NewContext(true, tmproto.Header{Height: app.LastBlockHeight()})
@@ -276,7 +273,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 
 	fmt.Printf("exporting genesis...\n")
 
-	appState, _, err := app.ExportAppStateAndValidators(true, []string{})
+	exported, err := app.ExportAppStateAndValidators(true, []string{})
 	require.NoError(t, err)
 
 	fmt.Printf("importing genesis...\n")
@@ -296,7 +293,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	require.Equal(t, appName, newApp.Name())
 
 	newApp.InitChain(abci.RequestInitChain{
-		AppStateBytes: appState,
+		AppStateBytes: exported.AppState,
 	})
 
 	_, _, err = simulation.SimulateFromSeed(
