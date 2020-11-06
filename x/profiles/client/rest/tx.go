@@ -203,7 +203,7 @@ func cancelDTagTransferRequestHandler(clientCtx client.Context) http.HandlerFunc
 			return
 		}
 
-		msg := types.NewMsgRefuseDTagTransferRequest(clientCtx.FromAddress.String(), owner.String())
+		msg := types.NewMsgCancelDTagTransferRequest(clientCtx.FromAddress.String(), owner.String())
 		if rest.CheckBadRequestError(w, msg.ValidateBasic()) {
 			return
 		}

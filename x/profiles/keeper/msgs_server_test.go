@@ -490,7 +490,7 @@ func (suite *KeeperTestSuite) Test_handleMsgRefuseDTagRequest() {
 		{
 			name:           "No requests found returns error",
 			storedDTagReqs: nil,
-			msg:            types.NewMsgRefuseDTagTransferRequest(suite.testData.otherUser, suite.testData.user),
+			msg:            types.NewMsgRefuseDTagTransferRequest(suite.testData.user, suite.testData.otherUser),
 			expEvents:      sdk.EmptyEvents(),
 			expErr: sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
 				"request from %s to %s not found", suite.testData.user, suite.testData.otherUser),
@@ -500,7 +500,7 @@ func (suite *KeeperTestSuite) Test_handleMsgRefuseDTagRequest() {
 			storedDTagReqs: []types.DTagTransferRequest{
 				types.NewDTagTransferRequest("dtag", suite.testData.user, suite.testData.otherUser),
 			},
-			msg: types.NewMsgRefuseDTagTransferRequest(suite.testData.otherUser, suite.testData.user),
+			msg: types.NewMsgRefuseDTagTransferRequest(suite.testData.user, suite.testData.otherUser),
 			expEvents: sdk.Events{
 				sdk.NewEvent(
 					types.EventTypeDTagTransferRefuse,

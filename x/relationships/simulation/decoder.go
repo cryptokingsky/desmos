@@ -39,7 +39,7 @@ func NewDecodeStore(cdc codec.BinaryMarshaler) func(kvA, kvB kv.Pair) string {
 				userBlocksA.Blocks, userBlocksB.Blocks)
 
 		default:
-			panic(fmt.Sprintf("invalid relationships key %X", kvA.Key))
+			panic(fmt.Sprintf("unexpected %s key %X (%s)", types.ModuleName, kvA.Key, kvA.Key))
 		}
 	}
 }

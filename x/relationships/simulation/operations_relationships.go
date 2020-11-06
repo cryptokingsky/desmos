@@ -32,7 +32,7 @@ func SimulateMsgCreateRelationship(k keeper.Keeper, ak authkeeper.AccountKeeper,
 			return simtypes.NoOpMsg(types.RouterKey, types.ModuleName, ""), nil, nil
 		}
 
-		msg := types.NewMsgCreateRelationship(sender.Address.String(), relationship.Recipient, relationship.Subspace)
+		msg := types.NewMsgCreateRelationship(relationship.Creator, relationship.Recipient, relationship.Subspace)
 		err = sendMsgCreateRelationship(r, app, ak, bk, msg, ctx, chainID, []crypto.PrivKey{sender.PrivKey})
 		if err != nil {
 			return simtypes.NoOpMsg(types.RouterKey, types.ModuleName, ""), nil, err
@@ -124,13 +124,13 @@ func SimulateMsgDeleteRelationship(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (OperationMsg simtypes.OperationMsg, futureOps []simtypes.FutureOperation, err error) {
 
-		sender, relationship, skip := randomDeleteRelationshipFields(r, ctx, accs, k)
+		user, counterparty, subspace, skip := randomDeleteRelationshipFields(r, ctx, accs, k)
 		if skip {
 			return simtypes.NoOpMsg(types.RouterKey, types.ModuleName, ""), nil, nil
 		}
 
-		msg := types.NewMsgDeleteRelationship(sender.Address.String(), relationship.Recipient, relationship.Subspace)
-		err = sendMsgDeleteRelationship(r, app, ak, bk, msg, ctx, chainID, []crypto.PrivKey{sender.PrivKey})
+		msg := types.NewMsgDeleteRelationship(user.Address.String(), counterparty, subspace)
+		err = sendMsgDeleteRelationship(r, app, ak, bk, msg, ctx, chainID, []crypto.PrivKey{user.PrivKey})
 		if err != nil {
 			return simtypes.NoOpMsg(types.RouterKey, types.ModuleName, ""), nil, err
 		}
@@ -179,19 +179,29 @@ func sendMsgDeleteRelationship(
 // randomDeleteRelationshipFields returns random delete relationships fields
 func randomDeleteRelationshipFields(
 	r *rand.Rand, ctx sdk.Context, accs []simtypes.Account, k keeper.Keeper,
-) (simtypes.Account, types.Relationship, bool) {
+) (user simtypes.Account, counterparty string, subspace string, skip bool) {
 	if len(accs) == 0 {
-		return simtypes.Account{}, types.Relationship{}, true
+		return simtypes.Account{}, "", "", true
 	}
 
-	// Get random accounts
-	user, _ := simtypes.RandomAcc(r, accs)
+	// Get a random account
+	user, _ = simtypes.RandomAcc(r, accs)
 
 	// Skip the test if the user has no relationships
 	relationships := k.GetUserRelationships(ctx, user.Address.String())
 	if len(relationships) == 0 {
-		return simtypes.Account{}, types.Relationship{}, true
+		return simtypes.Account{}, "", "", true
 	}
 
-	return user, RandomRelationship(r, relationships), false
+	// Get a randomg relationship
+	relationship := RandomRelationship(r, relationships)
+
+	// Get the counterparty
+	if user.Address.String() == relationship.Creator {
+		counterparty = relationship.Recipient
+	} else {
+		counterparty = relationship.Creator
+	}
+
+	return user, counterparty, relationship.Subspace, false
 }

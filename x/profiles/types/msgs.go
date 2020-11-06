@@ -234,7 +234,7 @@ func (msg MsgAcceptDTagTransfer) GetSigners() []sdk.AccAddress {
 // ___________________________________________________________________________________________________________________
 
 // NewMsgRefuseDTagTransferRequest is a constructor for MsgRefuseDTagTransfer
-func NewMsgRefuseDTagTransferRequest(receiver, sender string) *MsgRefuseDTagTransfer {
+func NewMsgRefuseDTagTransferRequest(sender, receiver string) *MsgRefuseDTagTransfer {
 	return &MsgRefuseDTagTransfer{
 		Receiver: receiver,
 		Sender:   sender,

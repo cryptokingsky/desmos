@@ -7,10 +7,10 @@ import (
 	"github.com/desmos-labs/desmos/x/commons"
 )
 
-func NewMsgCreateRelationship(sender, receiver string, subspace string) *MsgCreateRelationship {
+func NewMsgCreateRelationship(creator, recipient string, subspace string) *MsgCreateRelationship {
 	return &MsgCreateRelationship{
-		Sender:   sender,
-		Receiver: receiver,
+		Sender:   creator,
+		Receiver: recipient,
 		Subspace: subspace,
 	}
 }
