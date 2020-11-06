@@ -341,8 +341,8 @@ func TestMsgAcceptDTagTransfer_GetSigners(t *testing.T) {
 // ___________________________________________________________________________________________________________________
 
 var msgRejectDTagTransfer = types.NewMsgRefuseDTagTransferRequest(
-	"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 	"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
+	"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 )
 
 func TestMsgRejectDTagRequest_Route(t *testing.T) {
@@ -364,16 +364,16 @@ func TestMsgRejectDTagRequest_ValidateBasic(t *testing.T) {
 		{
 			name: "Empty sender returns error",
 			msg: types.NewMsgRefuseDTagTransferRequest(
-				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 				"",
+				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 			),
 			error: sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address: "),
 		},
 		{
 			name: "Empty receiver returns error",
 			msg: types.NewMsgRefuseDTagTransferRequest(
-				"",
 				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
+				"",
 			),
 			error: sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid receiver address: "),
 		},
@@ -388,8 +388,8 @@ func TestMsgRejectDTagRequest_ValidateBasic(t *testing.T) {
 		{
 			name: "No error message",
 			msg: types.NewMsgRefuseDTagTransferRequest(
-				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 				"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
+				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 			),
 			error: nil,
 		},
