@@ -9,10 +9,6 @@ import (
 	"github.com/desmos-labs/desmos/x/magpie/types"
 )
 
-// ------------------
-// --- Session id
-// ------------------
-
 func TestSessionID_Valid(t *testing.T) {
 	tests := []struct {
 		id            types.SessionID
@@ -107,9 +103,7 @@ func TestParseSessionID(t *testing.T) {
 	}
 }
 
-// ------------------
-// --- Session
-// ------------------
+// ___________________________________________________________________________________________________________________
 
 func TestSession_Equals(t *testing.T) {
 	tests := []struct {
@@ -340,69 +334,6 @@ func TestSession_Equals(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			require.Equal(t, test.expEquals, test.first.Equal(test.second))
-		})
-	}
-}
-
-// ---------------
-// --- Sessions
-// ---------------
-
-func TestSessions_Equals(t *testing.T) {
-	tests := []struct {
-		name      string
-		first     types.Sessions
-		second    types.Sessions
-		expEquals bool
-	}{
-		{
-			name:      "Empty lists",
-			first:     types.Sessions{},
-			second:    types.Sessions{},
-			expEquals: true,
-		},
-		{
-			name:      "Empty and non empty list",
-			first:     types.Sessions{},
-			second:    types.Sessions{types.Session{SessionId: types.SessionID{Value: 10}}},
-			expEquals: false,
-		},
-		{
-			name:      "Non empty list, different items",
-			first:     types.Sessions{types.Session{SessionId: types.SessionID{Value: 19}}},
-			second:    types.Sessions{types.Session{SessionId: types.SessionID{Value: 14}}},
-			expEquals: false,
-		},
-		{
-			name: "Non empty lists, same items in different position",
-			first: types.Sessions{
-				types.Session{SessionId: types.SessionID{Value: 19}},
-				types.Session{SessionId: types.SessionID{Value: 45}},
-			},
-			second: types.Sessions{
-				types.Session{SessionId: types.SessionID{Value: 45}},
-				types.Session{SessionId: types.SessionID{Value: 19}},
-			},
-			expEquals: false,
-		},
-		{
-			name: "Non empty lists, same items and same position",
-			first: types.Sessions{
-				types.Session{SessionId: types.SessionID{Value: 19}},
-				types.Session{SessionId: types.SessionID{Value: 45}},
-			},
-			second: types.Sessions{
-				types.Session{SessionId: types.SessionID{Value: 19}},
-				types.Session{SessionId: types.SessionID{Value: 45}},
-			},
-			expEquals: true,
-		},
-	}
-
-	for _, test := range tests {
-		test := test
-		t.Run(test.name, func(t *testing.T) {
-			require.Equal(t, test.expEquals, test.first.Equals(test.second))
 		})
 	}
 }

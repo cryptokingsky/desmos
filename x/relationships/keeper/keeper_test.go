@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/desmos-labs/desmos/x/relationships/keeper"
 
 	"github.com/desmos-labs/desmos/x/relationships/types"
@@ -31,7 +33,10 @@ func (suite *KeeperTestSuite) TestKeeper_StoreRelationship() {
 				suite.testData.otherUser,
 				"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 			),
-			expErr: fmt.Errorf("relationship already exists with %s", suite.testData.otherUser),
+			expErr: sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
+				"relationship already exists with %s",
+				suite.testData.otherUser,
+			),
 		},
 		{
 			name:   "relationship added correctly",
@@ -90,8 +95,12 @@ func (suite *KeeperTestSuite) TestKeeper_StoreRelationship() {
 
 				store.Set(types.RelationshipsStoreKey(test.user), bz)
 			}
+
 			err := suite.k.StoreRelationship(suite.ctx, test.relationship)
-			suite.Require().Equal(test.expErr, err)
+			if test.expErr != nil {
+				suite.Require().Error(err)
+				suite.Require().Equal(test.expErr.Error(), err.Error())
+			}
 		})
 	}
 }
@@ -144,8 +153,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetUsersRelationships() {
 				suite.Require().NoError(err)
 			}
 
-			relationships, err := suite.k.GetAllRelationships(suite.ctx)
-			suite.Require().NoError(err)
+			relationships := suite.k.GetAllRelationships(suite.ctx)
 
 			suite.Require().Len(relationships, len(test.expected))
 			for _, rel := range relationships {
@@ -184,6 +192,11 @@ func (suite *KeeperTestSuite) TestKeeper_GetUserRelationships() {
 					"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
 					"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 				),
+				types.NewRelationship(
+					"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
+					"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
+					"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
+				),
 			},
 		},
 		{
@@ -201,9 +214,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetUserRelationships() {
 				suite.Require().NoError(err)
 			}
 
-			relationships, err := suite.k.GetUserRelationships(suite.ctx, test.user)
-			suite.Require().NoError(err)
-
+			relationships := suite.k.GetUserRelationships(suite.ctx, test.user)
 			suite.Require().Equal(test.expected, relationships)
 		})
 	}
@@ -292,8 +303,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteRelationship() {
 			err := suite.k.DeleteRelationship(suite.ctx, test.relationshipToDelete)
 			suite.Require().NoError(err)
 
-			rel, err := suite.k.GetAllRelationships(suite.ctx)
-			suite.Require().NoError(err)
+			rel := suite.k.GetAllRelationships(suite.ctx)
 			suite.Require().Equal(test.expRelationships, rel)
 		})
 	}
@@ -324,7 +334,10 @@ func (suite *KeeperTestSuite) TestKeeper_SaveUserBlock() {
 				"reason",
 				"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 			),
-			expErr: fmt.Errorf("the user with address %s has already been blocked", suite.testData.otherUser),
+			expErr: sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
+				"the user with address %s has already been blocked",
+				suite.testData.otherUser,
+			),
 		},
 		{
 			name:             "user block added correctly",
@@ -335,7 +348,6 @@ func (suite *KeeperTestSuite) TestKeeper_SaveUserBlock() {
 				"reason",
 				"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 			),
-			expErr: nil,
 		},
 	}
 
@@ -349,8 +361,9 @@ func (suite *KeeperTestSuite) TestKeeper_SaveUserBlock() {
 
 				store.Set(types.UsersBlocksStoreKey(suite.testData.user), bz)
 			}
+
 			err := suite.k.SaveUserBlock(suite.ctx, test.userBlock)
-			suite.Require().Equal(test.expErr, err)
+			suite.RequireErrorsEqual(test.expErr, err)
 		})
 	}
 }
@@ -531,8 +544,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetUsersBlocks() {
 				suite.Require().NoError(err)
 			}
 
-			actualBlocks, err := suite.k.GetUsersBlocks(suite.ctx)
-			suite.Require().NoError(err)
+			actualBlocks := suite.k.GetUsersBlocks(suite.ctx)
 
 			suite.Require().Len(actualBlocks, len(test.expUsersBlocks))
 			for _, block := range test.expUsersBlocks {

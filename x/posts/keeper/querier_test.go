@@ -32,15 +32,15 @@ func (suite *KeeperTestSuite) Test_queryPost() {
 			name:                "Invalid ID returns error",
 			path:                []string{types.QueryPost, ""},
 			registeredReactions: nil,
-			expError:            sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "invalid postID: "),
+			expError:            sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid post id: "),
 		},
 		{
 			name:                "Post not found returns error",
 			path:                []string{types.QueryPost, "19de02e105c68a60e45c289bff19fde745bca9c63c38f2095b59e8e8090ae1af"},
 			registeredReactions: nil,
 			expError: sdkerrors.Wrap(
-				sdkerrors.ErrUnknownRequest,
-				"Post with id 19de02e105c68a60e45c289bff19fde745bca9c63c38f2095b59e8e8090ae1af not found",
+				sdkerrors.ErrInvalidRequest,
+				"post with id 19de02e105c68a60e45c289bff19fde745bca9c63c38f2095b59e8e8090ae1af not found",
 			),
 		},
 		{
@@ -122,7 +122,7 @@ func (suite *KeeperTestSuite) Test_queryPost() {
 					types.NewUserAnswer([]string{"1"}, "cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4"),
 				},
 				[]types.PostReaction{},
-				nil,
+				[]string{},
 			),
 		},
 		{
@@ -398,7 +398,7 @@ func (suite *KeeperTestSuite) Test_queryPost() {
 			}
 
 			if result == nil {
-				suite.NotNil(err)
+				suite.Require().Error(err)
 				suite.Require().Equal(test.expError.Error(), err.Error())
 				suite.Require().Nil(result)
 			}
@@ -644,12 +644,12 @@ func (suite *KeeperTestSuite) Test_queryPollAnswers() {
 		{
 			name:     "Invalid post id returns error",
 			path:     []string{types.QueryPollAnswers, ""},
-			expError: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid postID: "),
+			expError: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid post id: "),
 		},
 		{
 			name:     "Post not found returns error",
 			path:     []string{types.QueryPollAnswers, "1"},
-			expError: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid postID: 1"),
+			expError: sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid post id: 1"),
 		},
 		{
 			name: "No post associated with ID given",
@@ -730,7 +730,7 @@ func (suite *KeeperTestSuite) Test_queryPollAnswers() {
 			}
 
 			if result == nil {
-				suite.NotNil(err)
+				suite.Require().Error(err)
 				suite.Require().Equal(test.expError.Error(), err.Error())
 				suite.Require().Nil(result)
 			}
@@ -801,7 +801,7 @@ func (suite *KeeperTestSuite) Test_queryRegisteredReactions() {
 			}
 
 			if result == nil {
-				suite.NotNil(err)
+				suite.Require().Error(err)
 				suite.Require().Equal(test.expError.Error(), err.Error())
 				suite.Require().Nil(result)
 			}

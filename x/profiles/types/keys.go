@@ -12,11 +12,11 @@ const (
 	RefuseDTagTransferRequest = "refuse_dtag_request"
 	CancelDTagTransferRequest = "cancel_dtag_request"
 
-	QuerierRoute      = ModuleName
-	QueryProfile      = "profile"
-	QueryProfiles     = "all"
-	QueryDTagRequests = "dtag-requests"
-	QueryParams       = "params"
+	QuerierRoute              = ModuleName
+	QueryProfile              = "profile"
+	QueryProfiles             = "all"
+	QueryIncomingDTagRequests = "incoming-dtag-requests"
+	QueryParams               = "params"
 
 	DoNotModify = "[do-not-modify]"
 )

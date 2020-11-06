@@ -104,12 +104,8 @@ func randomRelationshipFields(
 
 	rel := types.NewRelationship(sender.Address.String(), receiver.Address.String(), subspace)
 
-	// skip if relationships already exists
-	relationships, err := k.GetUserRelationships(ctx, sender.Address.String())
-	if err != nil {
-		return sender, rel, false
-	}
-
+	// Skip if relationships already exists
+	relationships := k.GetUserRelationships(ctx, sender.Address.String())
 	for _, relationship := range relationships {
 		if relationship.Equal(rel) {
 			return simtypes.Account{}, types.Relationship{}, true
@@ -191,10 +187,9 @@ func randomDeleteRelationshipFields(
 	// Get random accounts
 	user, _ := simtypes.RandomAcc(r, accs)
 
-	relationships, err := k.GetUserRelationships(ctx, user.Address.String())
-
-	// skip the test if the user has no relationships
-	if err != nil || len(relationships) == 0 {
+	// Skip the test if the user has no relationships
+	relationships := k.GetUserRelationships(ctx, user.Address.String())
+	if len(relationships) == 0 {
 		return simtypes.Account{}, types.Relationship{}, true
 	}
 

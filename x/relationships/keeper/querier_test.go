@@ -41,8 +41,8 @@ func (suite *KeeperTestSuite) Test_queryUserRelationships() {
 			},
 			expResult: []types.Relationship{
 				types.NewRelationship(
-					"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47",
 					suite.testData.user,
+					"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 					"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 				),
 				types.NewRelationship(
@@ -70,18 +70,18 @@ func (suite *KeeperTestSuite) Test_queryUserRelationships() {
 			if test.expResult != nil {
 				suite.Require().Nil(err)
 
-				var actual []types.UserBlock
+				var actual []types.Relationship
 				err := suite.legacyAmino.UnmarshalJSON(result, &actual)
 				suite.Require().NoError(err)
 
 				suite.Require().Len(actual, len(test.expResult))
-				for _, block := range actual {
-					suite.Require().Contains(test.expResult, block)
+				for _, relationship := range actual {
+					suite.Require().Contains(test.expResult, relationship)
 				}
 			}
 
 			if result == nil {
-				suite.NotNil(err)
+				suite.Require().Error(err)
 				suite.Require().Equal(test.expErr.Error(), err.Error())
 				suite.Require().Nil(result)
 			}
@@ -153,7 +153,7 @@ func (suite *KeeperTestSuite) Test_queryRelationships() {
 			}
 
 			if result == nil {
-				suite.NotNil(err)
+				suite.Require().Error(err)
 				suite.Require().Equal(test.expErr.Error(), err.Error())
 				suite.Require().Nil(result)
 			}
@@ -230,7 +230,7 @@ func (suite *KeeperTestSuite) Test_queryUserBlocks() {
 			}
 
 			if result == nil {
-				suite.NotNil(err)
+				suite.Require().Error(err)
 				suite.Require().Equal(test.expErr.Error(), err.Error())
 				suite.Require().Nil(result)
 			}

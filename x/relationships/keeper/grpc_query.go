@@ -13,22 +13,14 @@ var _ types.QueryServer = Keeper{}
 // Relationships implements the Query/Session gRPC method
 func (k Keeper) Relationships(ctx context.Context, _ *types.QueryRelationshipsRequest) (*types.QueryRelationshipsResult, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	relationships, err := k.GetAllRelationships(sdkCtx)
-	if err != nil {
-		return nil, err
-	}
-
+	relationships := k.GetAllRelationships(sdkCtx)
 	return &types.QueryRelationshipsResult{Relationships: relationships}, nil
 }
 
 // UserRelationships implements the Query/Session gRPC method
 func (k Keeper) UserRelationships(ctx context.Context, request *types.QueryUserRelationshipsRequest) (*types.QueryRelationshipsResult, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	relationships, err := k.GetUserRelationships(sdkCtx, request.User)
-	if err != nil {
-		return nil, err
-	}
-
+	relationships := k.GetUserRelationships(sdkCtx, request.User)
 	return &types.QueryRelationshipsResult{Relationships: relationships}, nil
 }
 

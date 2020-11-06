@@ -177,7 +177,7 @@ func (k msgServer) RemovePostReaction(goCtx context.Context, msg *types.MsgRemov
 	// Remove the reaction
 	reaction := types.NewPostReaction(reactionShortcode, reactionValue, msg.User)
 	if err := k.DeletePostReaction(ctx, post.PostID, reaction); err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, err
 	}
 
 	// Emit the event

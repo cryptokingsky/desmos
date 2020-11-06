@@ -31,7 +31,7 @@ func SimulateMsgRequestDTagTransfer(
 			return simtypes.NoOpMsg(types.RouterKey, types.ModuleName, ""), nil, nil
 		}
 
-		msg := types.NewMsgRequestDTagTransfer(request.Receiver, request.Sender)
+		msg := types.NewMsgRequestDTagTransfer(request.Sender, request.Receiver)
 
 		err = sendMsgRequestDTagTransfer(r, app, ak, bk, msg, ctx, chainID, []crypto.PrivKey{acc.PrivKey})
 		if err != nil {
@@ -112,7 +112,7 @@ func randomDtagRequestTransferFields(
 	))
 
 	// skip if requests already exists
-	requests := k.GetUserDTagTransferRequests(ctx, receiver.Address.String())
+	requests := k.GetUserIncomingDTagTransferRequests(ctx, receiver.Address.String())
 	for _, request := range requests {
 		if request.Equal(req) {
 			return simtypes.Account{}, types.DTagTransferRequest{}, true
@@ -209,7 +209,7 @@ func randomDtagAcceptRequestTransferFields(
 	)
 
 	// skip if requests doesnt exists
-	requests := k.GetUserDTagTransferRequests(ctx, currentOwner.Address.String())
+	requests := k.GetUserIncomingDTagTransferRequests(ctx, currentOwner.Address.String())
 	found := false
 	for _, request := range requests {
 		if request.Equal(req) {

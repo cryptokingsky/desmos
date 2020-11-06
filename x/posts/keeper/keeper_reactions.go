@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/desmos-labs/desmos/x/posts/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -49,7 +51,8 @@ func (k Keeper) DeletePostReaction(ctx sdk.Context, postID string, reaction type
 	// Check if the user exists
 	reactions := types.NewPostReactions(wrapped.Reactions...)
 	if !reactions.ContainsReactionFrom(reaction.Owner, reaction.ShortCode) {
-		return fmt.Errorf("cannot remove the reaction with value %s from user %s as it does not exist",
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
+			"cannot remove the reaction with value %s from user %s as it does not exist",
 			reaction.ShortCode, reaction.Owner)
 	}
 

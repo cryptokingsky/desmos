@@ -1,29 +1,34 @@
 package keeper_test
 
 import (
-	"encoding/binary"
 	"fmt"
 	"math"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/desmos-labs/desmos/x/magpie/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_SetDefaultSessionLength() {
 	tests := []struct {
-		length uint64
-		expErr error
+		length           uint64
+		expSessionLength uint64
+		expErr           error
 	}{
 		{
-			length: 0,
-			expErr: fmt.Errorf("cannot set 0 as default session length"),
+			length:           0,
+			expSessionLength: 0,
+			expErr:           sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "cannot set 0 as default session length"),
 		},
 		{
-			length: 1,
-			expErr: nil,
+			length:           1,
+			expSessionLength: 1,
+			expErr:           nil,
 		},
 		{
-			length: math.MaxInt64,
-			expErr: nil,
+			length:           math.MaxInt64,
+			expSessionLength: math.MaxInt64,
+			expErr:           nil,
 		},
 	}
 
@@ -31,20 +36,13 @@ func (suite *KeeperTestSuite) TestKeeper_SetDefaultSessionLength() {
 		test := test
 
 		suite.Run(fmt.Sprintf("Default session length: %d", test.length), func() {
-			suite.SetupTest() // reset
+			suite.SetupTest()
+
 			err := suite.keeper.SetDefaultSessionLength(suite.ctx, test.length)
+			suite.RequireErrorsEqual(test.expErr, err)
 
-			if test.expErr == nil {
-				suite.Require().NoError(err)
-
-				store := suite.ctx.KVStore(suite.storeKey)
-				stored := binary.LittleEndian.Uint64(store.Get(types.SessionLengthKey))
-				suite.Require().Equal(test.length, stored)
-			}
-
-			if test.expErr != nil {
-				suite.Require().Equal(test.expErr, err)
-			}
+			stored := suite.keeper.GetDefaultSessionLength(suite.ctx)
+			suite.Require().Equal(test.expSessionLength, stored)
 		})
 	}
 }
@@ -54,14 +52,11 @@ func (suite *KeeperTestSuite) TestKeeper_GetDefaultSessionLength() {
 
 	for _, length := range tests {
 		length := length
+		suite.SetupTest()
 		suite.Run(fmt.Sprintf("Get default session length: %d", length), func() {
-			suite.SetupTest()
-
-			store := suite.ctx.KVStore(suite.storeKey)
 			if length != 0 {
-				var bz []byte
-				binary.LittleEndian.PutUint64(bz, length)
-				store.Set(types.SessionLengthKey, bz)
+				err := suite.keeper.SetDefaultSessionLength(suite.ctx, length)
+				suite.Require().NoError(err)
 			}
 
 			recovered := suite.keeper.GetDefaultSessionLength(suite.ctx)
@@ -89,14 +84,10 @@ func (suite *KeeperTestSuite) TestKeeper_GetLastSessionID() {
 
 	for _, test := range tests {
 		test := test
+		suite.SetupTest()
 		suite.Run(test.name, func() {
-			suite.SetupTest() // reset
 			if test.existingID.Valid() {
-				store := suite.ctx.KVStore(suite.storeKey)
-
-				var bz []byte
-				binary.LittleEndian.PutUint64(bz, test.existingID.Value)
-				store.Set(types.LastSessionIDStoreKey, bz)
+				suite.keeper.SetLastSessionID(suite.ctx, test.existingID)
 			}
 
 			suite.Require().Equal(test.expID, suite.keeper.GetLastSessionID(suite.ctx))
@@ -190,33 +181,33 @@ func (suite *KeeperTestSuite) TestKeeper_GetSession() {
 func (suite *KeeperTestSuite) TestKeeper_GetSessions() {
 	tests := []struct {
 		name           string
-		storedSessions types.Sessions
-		expSessions    types.Sessions
+		storedSessions []types.Session
+		expSessions    []types.Session
 	}{
 		{
 			name:           "Empty slice",
-			storedSessions: types.Sessions{},
-			expSessions:    types.Sessions{},
+			storedSessions: nil,
+			expSessions:    nil,
 		},
 		{
 			name: "Non empty, non double items",
-			storedSessions: types.Sessions{
-				types.Session{SessionId: types.NewSessionID(1)},
-				types.Session{SessionId: types.NewSessionID(2)},
+			storedSessions: []types.Session{
+				{SessionId: types.NewSessionID(1)},
+				{SessionId: types.NewSessionID(2)},
 			},
-			expSessions: types.Sessions{
-				types.Session{SessionId: types.NewSessionID(1)},
-				types.Session{SessionId: types.NewSessionID(2)},
+			expSessions: []types.Session{
+				{SessionId: types.NewSessionID(1)},
+				{SessionId: types.NewSessionID(2)},
 			},
 		},
 		{
 			name: "Non empty, double items",
-			storedSessions: types.Sessions{
-				types.Session{SessionId: types.NewSessionID(1)},
-				types.Session{SessionId: types.NewSessionID(1)},
+			storedSessions: []types.Session{
+				{SessionId: types.NewSessionID(1)},
+				{SessionId: types.NewSessionID(1)},
 			},
-			expSessions: types.Sessions{
-				types.Session{SessionId: types.NewSessionID(1)},
+			expSessions: []types.Session{
+				{SessionId: types.NewSessionID(1)},
 			},
 		},
 	}

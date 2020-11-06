@@ -94,7 +94,7 @@ func (msg MsgDeleteProfile) GetSigners() []sdk.AccAddress {
 // ___________________________________________________________________________________________________________________
 
 // NewMsgRequestDTagTransfer is a constructor function for MsgRequestDtagTransfer
-func NewMsgRequestDTagTransfer(receiver, sender string) *MsgRequestDTagTransfer {
+func NewMsgRequestDTagTransfer(sender, receiver string) *MsgRequestDTagTransfer {
 	return &MsgRequestDTagTransfer{
 		Receiver: receiver,
 		Sender:   sender,
@@ -187,8 +187,8 @@ func (msg MsgCancelDTagTransfer) GetSigners() []sdk.AccAddress {
 func NewMsgAcceptDTagTransfer(newDTag string, receiver, sender string) *MsgAcceptDTagTransfer {
 	return &MsgAcceptDTagTransfer{
 		NewDtag:  newDTag,
-		Receiver: receiver,
 		Sender:   sender,
+		Receiver: receiver,
 	}
 }
 

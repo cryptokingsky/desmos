@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"fmt"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/desmos-labs/desmos/x/posts/keeper"
 
 	"github.com/desmos-labs/desmos/x/posts/types"
@@ -129,7 +131,6 @@ func (suite *KeeperTestSuite) TestKeeper_DeletePostReaction() {
 			liker:          "cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4",
 			shortcode:      ":like:",
 			value:          "👍",
-			error:          nil,
 			expectedStored: types.PostReactions{},
 		},
 		{
@@ -139,8 +140,12 @@ func (suite *KeeperTestSuite) TestKeeper_DeletePostReaction() {
 			liker:           "cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4",
 			shortcode:       ":like:",
 			value:           "👍",
-			error:           fmt.Errorf("cannot remove the reaction with value :like: from user cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4 as it does not exist"),
-			expectedStored:  types.PostReactions{},
+			error: sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
+				"cannot remove the reaction with value %s from user %s as it does not exist",
+				":like:",
+				"cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4",
+			),
+			expectedStored: types.PostReactions{},
 		},
 		{
 			name: "Non existing reaction returns error - Reaction",
@@ -151,7 +156,11 @@ func (suite *KeeperTestSuite) TestKeeper_DeletePostReaction() {
 			liker:     "cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4",
 			shortcode: ":smile:",
 			value:     "😊",
-			error:     fmt.Errorf("cannot remove the reaction with value :smile: from user cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4 as it does not exist"),
+			error: sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
+				"cannot remove the reaction with value %s from user %s as it does not exist",
+				":smile:",
+				"cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4",
+			),
 			expectedStored: types.PostReactions{
 				types.NewPostReaction(":like:", "👍", "cosmos1s3nh6tafl4amaxkke9kdejhp09lk93g9ev39r4"),
 			},
@@ -169,7 +178,10 @@ func (suite *KeeperTestSuite) TestKeeper_DeletePostReaction() {
 			}
 
 			err := suite.k.DeletePostReaction(suite.ctx, test.postID, types.NewPostReaction(test.shortcode, test.value, test.liker))
-			suite.Require().Equal(test.error, err)
+			if test.error != nil {
+				suite.Require().Error(err)
+				suite.Require().Equal(test.error.Error(), err.Error())
+			}
 
 			var stored keeper.WrappedPostReactions
 			suite.cdc.MustUnmarshalBinaryBare(store.Get(types.PostReactionsStoreKey(test.postID)), &stored)

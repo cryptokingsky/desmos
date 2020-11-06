@@ -115,7 +115,7 @@ func requestDTagTransferHandler(clientCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgRequestDTagTransfer(receiver.String(), clientCtx.FromAddress.String())
+		msg := types.NewMsgRequestDTagTransfer(clientCtx.FromAddress.String(), receiver.String())
 		if rest.CheckBadRequestError(w, msg.ValidateBasic()) {
 			return
 		}

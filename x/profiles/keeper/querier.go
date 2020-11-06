@@ -23,8 +23,8 @@ func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier 
 			return queryProfiles(ctx, req, keeper, legacyQuerierCdc)
 		case types.QueryParams:
 			return queryProfileParams(ctx, req, keeper, legacyQuerierCdc)
-		case types.QueryDTagRequests:
-			return queryDTagRequests(ctx, path[1:], req, keeper, legacyQuerierCdc)
+		case types.QueryIncomingDTagRequests:
+			return queryIncomingDTagRequests(ctx, path[1:], req, keeper, legacyQuerierCdc)
 		default:
 			return nil, fmt.Errorf("unknown profiles query endpoint")
 		}
@@ -37,12 +37,12 @@ func queryProfile(
 ) ([]byte, error) {
 	dTagOrAddress := path[0]
 	if strings.TrimSpace(dTagOrAddress) == "" {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "DTag or sdkAddress cannot be empty or blank")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "DTag or address cannot be empty or blank")
 	}
 
 	sdkAddress, err := sdk.AccAddressFromBech32(dTagOrAddress)
 	if err != nil {
-		addr := keeper.GetDtagRelatedAddress(ctx, dTagOrAddress)
+		addr := keeper.GetDTagRelatedAddress(ctx, dTagOrAddress)
 		if addr == "" {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
 				"No address related to this DTag: %s", dTagOrAddress)
@@ -57,7 +57,7 @@ func queryProfile(
 	account, found := keeper.GetProfile(ctx, sdkAddress.String())
 	if !found {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
-			"Profile with sdkAddress %s doesn't exists", dTagOrAddress)
+			"Profile with address %s doesn't exists", dTagOrAddress)
 	}
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, &account)
@@ -96,8 +96,8 @@ func queryProfileParams(
 	return bz, nil
 }
 
-// queryDTagRequests handles the request to get all the dTag requests of a user
-func queryDTagRequests(
+// queryIncomingDTagRequests handles the request to get all the incoming DTag requests of a user
+func queryIncomingDTagRequests(
 	ctx sdk.Context, path []string, _ abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino,
 ) ([]byte, error) {
 	user, err := sdk.AccAddressFromBech32(path[0])
@@ -105,9 +105,9 @@ func queryDTagRequests(
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("Invalid bech32 address: %s", path[0]))
 	}
 
-	dTagRequests := keeper.GetUserDTagTransferRequests(ctx, user.String())
+	requests := keeper.GetUserIncomingDTagTransferRequests(ctx, user.String())
 
-	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, &dTagRequests)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, &requests)
 	if err != nil {
 		panic("could not marshal result to JSON")
 	}

@@ -28,10 +28,7 @@ func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier 
 
 // queryRelationships handles the request of listing all the relationships in the given context
 func queryRelationships(ctx sdk.Context, _ abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-	relationships, err := keeper.GetAllRelationships(ctx)
-	if err != nil {
-		return nil, err
-	}
+	relationships := keeper.GetAllRelationships(ctx)
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, &relationships)
 	if err != nil {
@@ -43,10 +40,7 @@ func queryRelationships(ctx sdk.Context, _ abci.RequestQuery, keeper Keeper, leg
 
 // queryUserRelationships handles the request of listing all the users' stored
 func queryUserRelationships(ctx sdk.Context, path []string, _ abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-	relationships, err := keeper.GetUserRelationships(ctx, path[0])
-	if err != nil {
-		return nil, err
-	}
+	relationships := keeper.GetUserRelationships(ctx, path[0])
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, &relationships)
 	if err != nil {

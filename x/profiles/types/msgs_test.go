@@ -191,13 +191,13 @@ func TestMsgRequestDTagTransfer_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name:  "Empty current owner returns error",
-			msg:   types.NewMsgRequestDTagTransfer("", ""),
-			error: sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid receiver address: "),
+			msg:   types.NewMsgRequestDTagTransfer("", "cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns"),
+			error: sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address: "),
 		},
 		{
 			name:  "Empty receiving user returns error",
 			msg:   types.NewMsgRequestDTagTransfer("cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns", ""),
-			error: sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address: "),
+			error: sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid receiver address: "),
 		},
 		{
 			name: "Equals current owner and receiving user returns error",
@@ -233,7 +233,7 @@ func TestMsgRequestDTagTransfer_ValidateBasic(t *testing.T) {
 
 func TestMsgRequestDTagTransfer_GetSignBytes(t *testing.T) {
 	actual := msgRequestTransferDTag.GetSignBytes()
-	expected := `{"type":"desmos/MsgRequestDTagTransfer","value":{"receiver":"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns","sender":"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47"}}`
+	expected := `{"type":"desmos/MsgRequestDTagTransfer","value":{"receiver":"cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47","sender":"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns"}}`
 	require.Equal(t, expected, string(actual))
 }
 

@@ -12,19 +12,26 @@ import (
 )
 
 func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
-	r.HandleFunc("/profiles/parameters", queryProfilesParamsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc("/profiles/{address_or_dtag}", queryProfileHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc("/profiles", queryProfilesHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc("/profiles/{address}/dtag-requests", queryDTagRequests(cliCtx)).Methods("GET")
+	r.HandleFunc("/profiles",
+		queryProfilesHandlerFn(cliCtx)).Methods("GET")
+
+	r.HandleFunc("/profiles/{address_or_dtag}",
+		queryProfileHandlerFn(cliCtx)).Methods("GET")
+
+	r.HandleFunc("/profiles/{address}/incoming-dtag-requests",
+		queryIncomingDTagRequests(cliCtx)).Methods("GET")
+
+	r.HandleFunc("/profiles/parameters",
+		queryProfilesParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
-// HTTP request handler to query all the DTag transfer requests of a user
-func queryDTagRequests(cliCtx client.Context) http.HandlerFunc {
+// HTTP request handler to query all the incoming DTag transfer requests of a user
+func queryIncomingDTagRequests(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		address := vars["address"]
 
-		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryDTagRequests, address)
+		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryIncomingDTagRequests, address)
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())

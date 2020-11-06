@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) Test_queryReports() {
 			}
 
 			if result == nil {
-				suite.NotNil(err)
+				suite.Require().Error(err)
 				suite.Require().Equal(test.expErr.Error(), err.Error())
 				suite.Require().Nil(result)
 			}

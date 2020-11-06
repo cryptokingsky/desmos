@@ -15,7 +15,7 @@ func (suite *KeeperTestSuite) Test_handleMsgCreateRelationship() {
 		msg                 *types.MsgCreateRelationship
 		storedRelationships []types.Relationship
 		expErr              error
-		expEvent            sdk.Event
+		expEvents           sdk.Events
 	}{
 		{
 			name: "Relationship sender been blocked from receiver returns error",
@@ -25,6 +25,7 @@ func (suite *KeeperTestSuite) Test_handleMsgCreateRelationship() {
 				"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 			),
 			isBlocked: true,
+			expEvents: sdk.EmptyEvents(),
 			expErr: sdkerrors.Wrap(
 				sdkerrors.ErrInvalidRequest,
 				"The user with address cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns has blocked you",
@@ -44,6 +45,7 @@ func (suite *KeeperTestSuite) Test_handleMsgCreateRelationship() {
 					"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 				),
 			},
+			expEvents: sdk.EmptyEvents(),
 			expErr: sdkerrors.Wrap(
 				sdkerrors.ErrInvalidRequest,
 				"relationship already exists with cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
@@ -56,14 +58,14 @@ func (suite *KeeperTestSuite) Test_handleMsgCreateRelationship() {
 				"cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns",
 				"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 			),
-			storedRelationships: nil,
-			expErr:              nil,
-			expEvent: sdk.NewEvent(
-				types.EventTypeRelationshipCreated,
-				sdk.NewAttribute(types.AttributeRelationshipSender, "cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47"),
-				sdk.NewAttribute(types.AttributeRelationshipReceiver, "cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns"),
-				sdk.NewAttribute(types.AttributeRelationshipSubspace, "4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e"),
-			),
+			expEvents: sdk.Events{
+				sdk.NewEvent(
+					types.EventTypeRelationshipCreated,
+					sdk.NewAttribute(types.AttributeRelationshipSender, "cosmos1y54exmx84cqtasvjnskf9f63djuuj68p7hqf47"),
+					sdk.NewAttribute(types.AttributeRelationshipReceiver, "cosmos1cjf97gpzwmaf30pzvaargfgr884mpp5ak8f7ns"),
+					sdk.NewAttribute(types.AttributeRelationshipSubspace, "4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e"),
+				),
+			},
 		},
 	}
 
@@ -83,23 +85,8 @@ func (suite *KeeperTestSuite) Test_handleMsgCreateRelationship() {
 
 			handler := keeper.NewMsgServerImpl(suite.k)
 			_, err := handler.CreateRelationship(sdk.WrapSDKContext(suite.ctx), test.msg)
-
-			if test.expErr == nil {
-				suite.Require().NoError(err)
-
-				// Check the events
-				suite.Len(suite.ctx.EventManager().Events(), 1)
-				suite.Contains(suite.ctx.EventManager().Events(), test.expEvent)
-
-				userRelationships, err := suite.k.GetUserRelationships(suite.ctx, test.msg.Sender)
-				suite.Require().NoError(err)
-				suite.Len(userRelationships, 1)
-			}
-
-			if test.expErr != nil {
-				suite.Error(err)
-				suite.Require().Equal(test.expErr.Error(), err.Error())
-			}
+			suite.RequireErrorsEqual(test.expErr, err)
+			suite.Require().Equal(test.expEvents, suite.ctx.EventManager().Events())
 		})
 	}
 }
@@ -140,8 +127,8 @@ func (suite *KeeperTestSuite) Test_handleMsgDeleteRelationship() {
 			"4e188d9c17150037d5199bbdb91ae1eb2a78a15aca04cb35530cccb81494b36e",
 		),
 	}
-	actual, err := suite.k.GetUserRelationships(suite.ctx, suite.testData.user)
-	suite.Require().NoError(err)
+
+	actual := suite.k.GetUserRelationships(suite.ctx, suite.testData.user)
 
 	suite.Require().Equal(expected, actual)
 

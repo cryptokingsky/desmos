@@ -30,7 +30,7 @@ func (k msgServer) CreateRelationship(goCtx context.Context, msg *types.MsgCreat
 	// Save the relationship
 	err := k.StoreRelationship(ctx, types.NewRelationship(msg.Sender, msg.Receiver, msg.Subspace))
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
@@ -66,7 +66,7 @@ func (k msgServer) BlockUser(goCtx context.Context, msg *types.MsgBlockUser) (*t
 
 	userBlock := types.NewUserBlock(msg.Blocker, msg.Blocked, msg.Reason, msg.Subspace)
 	if err := k.SaveUserBlock(ctx, userBlock); err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(

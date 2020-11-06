@@ -68,7 +68,7 @@ func queryPost(
 ) ([]byte, error) {
 	id := path[0]
 	if !types.IsValidPostID(id) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid postID: %s", id)
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid post id: %s", id)
 	}
 
 	post, found := keeper.GetPost(ctx, id)
@@ -117,7 +117,7 @@ func queryPollAnswers(
 ) ([]byte, error) {
 	id := path[0]
 	if !types.IsValidPostID(id) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid postID: %s", id)
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid post id: %s", id)
 	}
 
 	post, found := keeper.GetPost(ctx, id)

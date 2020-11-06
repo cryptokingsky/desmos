@@ -5,7 +5,7 @@ import (
 )
 
 // NewGenesisState allows to create a new genesis state containing the given default session length and sessions
-func NewGenesisState(defaultSessionLength uint64, sessions Sessions) *GenesisState {
+func NewGenesisState(defaultSessionLength uint64, sessions []Session) *GenesisState {
 	return &GenesisState{
 		DefaultSessionLength: defaultSessionLength,
 		Sessions:             sessions,
@@ -14,7 +14,7 @@ func NewGenesisState(defaultSessionLength uint64, sessions Sessions) *GenesisSta
 
 // DefaultGenesisState returns a default GenesisState
 func DefaultGenesisState() *GenesisState {
-	return NewGenesisState(240, Sessions{})
+	return NewGenesisState(240, nil)
 }
 
 // ValidateGenesis validates the given genesis state and returns an error if something is invalid

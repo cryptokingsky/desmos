@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) Test_handleMsgReportPost() {
 			}
 
 			if test.expErr != nil {
-				suite.NotNil(err)
+				suite.Require().Error(err)
 				suite.Require().Equal(test.expErr.Error(), err.Error())
 			}
 		})

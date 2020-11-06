@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -28,58 +30,40 @@ func (k Keeper) StoreRelationship(ctx sdk.Context, relationship types.Relationsh
 	store := ctx.KVStore(k.storeKey)
 	key := types.RelationshipsStoreKey(relationship.Creator)
 
-	var wrapped WrappedRelationships
-	err := k.cdc.UnmarshalBinaryBare(store.Get(key), &wrapped)
-	if err != nil {
-		return err
-	}
-
-	for _, rel := range wrapped.Relationships {
+	relationships := MustUnmarshalRelationships(k.cdc, store.Get(key))
+	for _, rel := range relationships {
 		if rel.Equal(relationship) {
-			return fmt.Errorf("relationship already exists with %s", relationship.Recipient)
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
+				"relationship already exists with %s", relationship.Recipient)
 		}
 	}
+	relationships = append(relationships, relationship)
 
-	wrapped = WrappedRelationships{Relationships: append(wrapped.Relationships, relationship)}
-	bz, err := k.cdc.MarshalBinaryBare(&wrapped)
-	if err != nil {
-		return err
-	}
-
+	bz := MustMarshalRelationships(k.cdc, relationships)
 	store.Set(key, bz)
 	return nil
 }
 
 // GetUserRelationships allows to list all the stored that involve the given user.
-func (k Keeper) GetUserRelationships(ctx sdk.Context, user string) ([]types.Relationship, error) {
-	store := ctx.KVStore(k.storeKey)
-
-	var wrapped WrappedRelationships
-	err := k.cdc.UnmarshalBinaryBare(store.Get(types.RelationshipsStoreKey(user)), &wrapped)
-	if err != nil {
-		return nil, err
-	}
-
-	return wrapped.Relationships, nil
+func (k Keeper) GetUserRelationships(ctx sdk.Context, user string) []types.Relationship {
+	var relationships []types.Relationship
+	k.IterateRelationships(ctx, func(index int64, relationship types.Relationship) (stop bool) {
+		if relationship.Creator == user || relationship.Recipient == user {
+			relationships = append(relationships, relationship)
+		}
+		return false
+	})
+	return relationships
 }
 
 // GetAllRelationships allows to returns the map of all the users and their associated stored
-func (k Keeper) GetAllRelationships(ctx sdk.Context) ([]types.Relationship, error) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.RelationshipsStorePrefix)
-
+func (k Keeper) GetAllRelationships(ctx sdk.Context) []types.Relationship {
 	var relationships []types.Relationship
-	for ; iterator.Valid(); iterator.Next() {
-		var wrapped WrappedRelationships
-		err := k.cdc.UnmarshalBinaryBare(iterator.Value(), &wrapped)
-		if err != nil {
-			return nil, err
-		}
-
-		relationships = append(relationships, wrapped.Relationships...)
-	}
-
-	return relationships, nil
+	k.IterateRelationships(ctx, func(index int64, relationship types.Relationship) (stop bool) {
+		relationships = append(relationships, relationship)
+		return false
+	})
+	return relationships
 }
 
 // DeleteRelationship allows to delete the relationship between the given user and his counterparty
@@ -129,7 +113,8 @@ func (k Keeper) SaveUserBlock(ctx sdk.Context, userBlock types.UserBlock) error 
 
 	for _, ub := range wrapped.Blocks {
 		if ub == userBlock {
-			return fmt.Errorf("the user with address %s has already been blocked", userBlock.Blocked)
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
+				"the user with address %s has already been blocked", userBlock.Blocked)
 		}
 	}
 
@@ -186,22 +171,24 @@ func (k Keeper) GetUserBlocks(ctx sdk.Context, user string) ([]types.UserBlock, 
 }
 
 // GetUsersBlocks returns a list of all the users blocks inside the given context.
-func (k Keeper) GetUsersBlocks(ctx sdk.Context) ([]types.UserBlock, error) {
+func (k Keeper) GetUsersBlocks(ctx sdk.Context) []types.UserBlock {
 	store := ctx.KVStore(k.storeKey)
+
 	iterator := sdk.KVStorePrefixIterator(store, types.UsersBlocksStorePrefix)
+	defer iterator.Close()
 
 	var usersBlocks []types.UserBlock
 	for ; iterator.Valid(); iterator.Next() {
 		var wrapped WrappedUserBlocks
 		err := k.cdc.UnmarshalBinaryBare(iterator.Value(), &wrapped)
 		if err != nil {
-			return nil, err
+			panic(err)
 		}
 
 		usersBlocks = append(usersBlocks, wrapped.Blocks...)
 	}
 
-	return usersBlocks, nil
+	return usersBlocks
 }
 
 // CheckForBlockedUser checks if the given user address is present inside the blocked users array

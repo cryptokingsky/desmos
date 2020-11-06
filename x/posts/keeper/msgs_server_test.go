@@ -6,7 +6,6 @@ import (
 
 	"github.com/desmos-labs/desmos/x/posts/keeper"
 
-	"github.com/desmos-labs/desmos/x/posts"
 	relationshipstypes "github.com/desmos-labs/desmos/x/relationships/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -402,7 +401,7 @@ func (suite *KeeperTestSuite) Test_handleMsgEditPost() {
 
 			// Invalid response
 			if err != nil {
-				suite.NotNil(err)
+				suite.Require().Error(err)
 				suite.Require().Equal(test.expError.Error(), err.Error())
 			}
 		})
@@ -481,12 +480,12 @@ func (suite *KeeperTestSuite) Test_handleMsgAddPostReaction() {
 				suite.k.SaveRegisteredReaction(suite.ctx, *test.registeredReaction)
 			}
 
-			handler := posts.NewHandler(suite.k)
-			res, err := handler(suite.ctx, test.msg)
+			handler := keeper.NewMsgServerImpl(suite.k)
+			_, err := handler.AddPostReaction(sdk.WrapSDKContext(suite.ctx), test.msg)
 
 			// Valid response
-			if res != nil {
-				suite.Contains(res.Events, test.expEvent)
+			if err == nil {
+				suite.Contains(suite.ctx.EventManager().Events(), test.expEvent)
 
 				// Check the post
 				var storedPost types.Post
@@ -525,8 +524,8 @@ func (suite *KeeperTestSuite) Test_handleMsgAddPostReaction() {
 			}
 
 			// Invalid response
-			if res == nil {
-				suite.NotNil(err)
+			if err != nil {
+				suite.Require().Error(err)
 				suite.Require().Equal(test.error.Error(), err.Error())
 			}
 		})
@@ -720,7 +719,7 @@ func (suite *KeeperTestSuite) Test_handleMsgRemovePostReaction() {
 
 			// Invalid response
 			if err != nil {
-				suite.NotNil(err)
+				suite.Require().Error(err)
 				suite.Require().Equal(test.error.Error(), err.Error())
 			}
 		})
@@ -979,7 +978,7 @@ func (suite *KeeperTestSuite) Test_handleMsgAnswerPollPost() {
 
 			// Invalid response
 			if err != nil {
-				suite.NotNil(err)
+				suite.Require().Error(err)
 				suite.Require().Equal(test.expErr.Error(), err.Error())
 			}
 		})
@@ -1079,7 +1078,7 @@ func (suite *KeeperTestSuite) Test_handleMsgRegisterReaction() {
 
 			// Invalid response
 			if err != nil {
-				suite.NotNil(err)
+				suite.Require().Error(err)
 				suite.Require().Equal(test.error.Error(), err.Error())
 			}
 		})
